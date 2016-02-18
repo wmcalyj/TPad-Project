@@ -1,0 +1,7 @@
+package com.example.speedanddraw;
+
+import android.view.View;
+
+public class DrawingView extends View {
+
+}
