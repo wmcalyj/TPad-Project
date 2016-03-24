@@ -4,20 +4,26 @@ import nxr.tpad.lib.TPad;
 import nxr.tpad.lib.TPadImpl;
 import nxr.tpad.lib.views.FrictionMapView;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
+import android.view.DragEvent;
 import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.GridView;
@@ -25,11 +31,11 @@ import android.widget.ImageView;
 
 public class MainActivity extends Activity {
 
-	static Integer[] surfaces = { R.drawable.basketball_cover,
-			R.drawable.glass_rain };
+	static Integer[] surfaces = { R.id.texture1, R.id.texture2, R.id.texture3 };
 
 	// Custom Haptic Rendering view defined in TPadLib
 	FrictionMapView fricView;
+	ImageView background;
 
 	// TPad object defined in TPadLib
 	TPad mTpad;
@@ -37,6 +43,8 @@ public class MainActivity extends Activity {
 	static float ratio = 1.0f;
 
 	ImageView ball;
+
+	private VelocityTracker mVelocityTracker = null;
 
 	// Create the bowling animation
 	public static RotateAnimation createImageRotationAnimation(
@@ -78,39 +86,137 @@ public class MainActivity extends Activity {
 		return animations;
 	}
 
-	// Create switching background
-	private GridView setGridView(GridView gridView) {
-
-		gridView.setOnItemClickListener(new OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View v,
-					int position, long id) {
-				ImageView surface = (ImageView) findViewById(R.id.surface);
-				surface.setImageResource(surfaces[position]);
-				ball.clearAnimation();
-				if (surfaces[position] == R.drawable.basketball_cover) {
-					ratio = 0.6f;
-				} else if (surfaces[position] == R.drawable.glass_rain) {
-					ratio = 1.0f;
-				}
-			}
-		});
-		return gridView;
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		mTpad = new TPadImpl(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		GridView surfaces = (GridView) findViewById(R.id.surfaceGrid);
-		surfaces.setAdapter(new ImageAdapter(this));
-		setGridView(surfaces);
+
+		// Get all surfaces
+		ImageView[] textures = new ImageView[surfaces.length];
+		for (int i = 0; i < surfaces.length; i++) {
+			textures[i] = (ImageView) findViewById(surfaces[i]);
+		}
+		addTextureListener(textures);
+
 		ball = (ImageView) findViewById(R.id.ball);
+		addBollDragingListerner(ball);
+
+		background = (ImageView) findViewById(R.id.surface);
 
 		Button start = (Button) findViewById(R.id.start);
 		Button stop = (Button) findViewById(R.id.reset);
 		addStartListener(start);
 		addStopListener(stop);
+	}
+
+	public void addBollDragingListerner(ImageView ball) {
+		ball.setOnTouchListener(new OnTouchListener() {
+
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// TODO Auto-generated method stub
+
+				float y = event.getRawY();
+				int index = event.getActionIndex();
+				int action = event.getActionMasked();
+				int pointerId = event.getPointerId(index);
+
+				switch (action) {
+				case MotionEvent.ACTION_DOWN:
+					// if (mVelocityTracker == null) {
+					// // Retrieve a new VelocityTracker object to watch the
+					// // velocity of a motion.
+					// mVelocityTracker = VelocityTracker.obtain();
+					// } else {
+					// // Reset the velocity tracker back to its initial state.
+					// mVelocityTracker.clear();
+					// }
+					// // Add a user's movement to the tracker.
+					// mVelocityTracker.addMovement(event);
+					// touch_start(x, y);
+					// invalidate();
+					Log.d("", "Y position: " + event.getRawY());
+					y = event.getRawY();// Record where y is
+					break;
+				case MotionEvent.ACTION_MOVE:
+					// mVelocityTracker.addMovement(event);
+					// When you want to determine the velocity, call
+					// computeCurrentVelocity(). Then call getXVelocity()
+					// and getYVelocity() to retrieve the velocity for each
+					// pointer
+					// ID.
+					// mVelocityTracker.computeCurrentVelocity(1000);
+					// Log velocity of pixels per second
+					// Best practice to use VelocityTrackerCompat where
+					// possible.
+					// float vx = VelocityTrackerCompat.getXVelocity(
+					// mVelocityTracker, pointerId);
+					// float vy = VelocityTrackerCompat.getYVelocity(
+					// mVelocityTracker, pointerId);
+					// float frictionLevel = getFrictionLevel(vx, vy);
+					// mTpad.sendFriction(frictionLevel);
+					// Log.d("", "X velocity: " + vx);
+					// Log.d("", "Y velocity: " + vy);
+					// v.setX(event.getX());
+					Log.d("", "Y position on move: " + event.getRawY());
+					Log.d("", "Y position of view: " + v.getY());
+					float newy = event.getRawY();
+					float dy = newy - y;
+					Log.d("", "DY is: " + dy);
+					v.setY(event.getRawY());
+					// touch_move(x, y);
+					// invalidate();
+					break;
+				case MotionEvent.ACTION_UP:
+					// touch_up();
+					// invalidate();
+					// Return a VelocityTracker object back to be re-used by
+					// others.
+					// mVelocityTracker.recycle();
+					// mVelocityTracker = null;
+					// mTpad.turnOff();
+					Log.d("", "Y position on up: " + event.getRawY());
+					v.setY(event.getRawY());
+					v.invalidate();
+					break;
+				case MotionEvent.ACTION_CANCEL:
+					// mVelocityTracker.recycle();
+					// mVelocityTracker = null;
+					// mTpad.turnOff();
+					Log.d("", "Y position on cancel: " + event.getRawY());
+					v.setY(event.getRawY());
+					v.invalidate();
+					break;
+				}
+				return true;
+			}
+		});
+	}
+
+	public void addTextureListener(ImageView[] textures) {
+		for (int i = 0; i < textures.length; i++) {
+			textures[i].setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					// TODO Auto-generated method stub
+					switch (v.getId()) {
+					case R.id.texture1:
+						background.setImageResource(R.drawable.glass_rain);
+						break;
+					case R.id.texture2:
+						background
+								.setImageResource(R.drawable.basketball_cover);
+						break;
+					case R.id.texture3:
+						background.setImageResource(R.drawable.rug);
+						break;
+					default:
+						break;
+					}
+				}
+			});
+		}
 	}
 
 	public void addStartListener(Button start) {
@@ -202,5 +308,61 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		mTpad.disconnectTPad();
 		super.onDestroy();
+	}
+
+	// Don't use on drag, not good
+	private void onDrag(ImageView ball) {
+
+		ball.setOnLongClickListener(new OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				ClipData.Item item = new ClipData.Item((CharSequence) v
+						.getTag());
+				String[] mimeTypes = { ClipDescription.MIMETYPE_TEXT_PLAIN };
+
+				ClipData dragData = new ClipData(v.getTag().toString(),
+						mimeTypes, item);
+				View.DragShadowBuilder myShadow = new View.DragShadowBuilder(v);
+
+				v.startDrag(dragData, myShadow, v, 0);
+				return true;
+			}
+		});
+		ball.setOnDragListener(new View.OnDragListener() {
+
+			@Override
+			public boolean onDrag(View v, DragEvent event) {
+				// TODO Auto-generated method stub
+				int action = event.getAction();
+				switch (action) {
+				case DragEvent.ACTION_DRAG_STARTED:
+					Log.d("", "action drag started");
+					// Do nothing
+					break;
+				case DragEvent.ACTION_DRAG_ENTERED:
+					Log.d("", "action drag entered");
+					// Do nothing
+					break;
+				case DragEvent.ACTION_DRAG_ENDED:
+					Log.d("", "action drag ended");
+					// Do nothing
+					break;
+				case DragEvent.ACTION_DRAG_EXITED:
+					Log.d("", "action drag exited");
+					// Do nothing
+					break;
+				case DragEvent.ACTION_DRAG_LOCATION:
+					Log.d("", "action drag location");
+					// Do nothing
+					break;
+				case DragEvent.ACTION_DROP:
+					Log.d("", "action drop");
+					// Do nothing
+					break;
+				// case DragEvent.
+				}
+				return true;
+			}
+		});
 	}
 }

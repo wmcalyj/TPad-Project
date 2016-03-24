@@ -7,5 +7,9 @@
     <string name="bowling_ball">Bowling Ball</string>
     <string name="start">START</string>
     <string name="reset">RESET</string>
+    <string name="texture1">Texture1</string>
+    <string name="texture2">Texture2</string>
+    <string name="texture3">Texture3</string>
+    <string name="pins">pins</string>
 
 </resources>
