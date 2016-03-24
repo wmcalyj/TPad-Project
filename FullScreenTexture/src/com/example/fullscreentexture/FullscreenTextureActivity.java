@@ -31,49 +31,47 @@ package com.example.fullscreentexture;
 
 import nxr.tpad.lib.TPad;
 import nxr.tpad.lib.TPadImpl;
-import nxr.tpad.lib.views.DepthMapView;
 import nxr.tpad.lib.views.FrictionMapView;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
-import com.example.fullscreentexture.R;
-
 public class FullscreenTextureActivity extends Activity {
 
 	// Custom Haptic Rendering view defined in TPadLib
 	FrictionMapView fricView;
-	
+
 	// TPad object defined in TPadLib
 	TPad mTpad;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		// Set the content of the screen to the .xml file that is in the layout folder
+
+		// Set the content of the screen to the .xml file that is in the layout
+		// folder
 		setContentView(R.layout.activity_hello_tpad);
-		
+
 		// Load new tpad object from TPad Implementation Library
 		mTpad = new TPadImpl(this);
-		
+
 		// Link friction view to .xml file
 		fricView = (FrictionMapView) findViewById(R.id.view1);
-		
+
 		// Link local tpad object to the FrictionMapView
 		fricView.setTpad(mTpad);
-		
+
 		// Load in the image stored in the drawables folder
-		Bitmap defaultBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.filter);
-		
+		Bitmap defaultBitmap = BitmapFactory.decodeResource(getResources(),
+				R.drawable.demo);
+
 		// Set the friction data bitmap to the test image
 		fricView.setDataBitmap(defaultBitmap);
+		// fricView.setDisplayShowing(false);
 		defaultBitmap.recycle();
-				
-		fricView.setDisplayShowing(false);
-				
-	
+		fricView.setDisplayShowing(true);
+
 	}
 
 	@Override
@@ -81,6 +79,5 @@ public class FullscreenTextureActivity extends Activity {
 		mTpad.disconnectTPad();
 		super.onDestroy();
 	}
-	
 
 }

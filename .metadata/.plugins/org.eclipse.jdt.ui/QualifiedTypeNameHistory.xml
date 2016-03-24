@@ -15,4 +15,10 @@
 <fullyQualifiedTypeName name="android.R"/>
 <fullyQualifiedTypeName name="android.R.layout"/>
 <fullyQualifiedTypeName name="com.example.speedanddraw.SpeedAndDraw"/>
+<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.layout"/>
+<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.drawable"/>
+<fullyQualifiedTypeName name="android.R.interpolator"/>
+<fullyQualifiedTypeName name="android.view.animation.LinearInterpolator"/>
+<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.id"/>
+<fullyQualifiedTypeName name="android.os.Handler"/>
 </qualifiedTypeNameHistroy>
