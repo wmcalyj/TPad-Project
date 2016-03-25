@@ -2,4 +2,4 @@
 //org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.launch.attachLaunchType=org.eclipse.cdt.dsf.gdb.launch.attachCLaunch,debug
 //org.eclipse.debug.core.PREFERRED_DELEGATES/org.eclipse.cdt.launch.postmortemLaunchType=org.eclipse.cdt.dsf.gdb.launch.coreCLaunch,debug
 eclipse.preferences.version=1
-prefWatchExpressions=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<watchExpressions>\n<expression enabled\="true" text\="w/2"/>\n<expression enabled\="true" text\="bmp.copy(Bitmap.Config.ARGB_8888, true);"/>\n<expression enabled\="true" text\="findViewById(R.id.action_settings);"/>\n</watchExpressions>\n
+prefWatchExpressions=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?>\n<watchExpressions>\n<expression enabled\="true" text\="w/2"/>\n<expression enabled\="true" text\="bmp.copy(Bitmap.Config.ARGB_8888, true);"/>\n<expression enabled\="true" text\="findViewById(R.id.action_settings);"/>\n<expression enabled\="true" text\="findViewById(surfaces[i])"/>\n<expression enabled\="true" text\="startLine"/>\n</watchExpressions>\n

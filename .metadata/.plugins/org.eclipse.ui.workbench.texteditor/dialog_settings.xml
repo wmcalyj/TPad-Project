@@ -2,20 +2,20 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="0.7" key="selection"/>
+		<item value="invalidate" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="0.7"/>
-			<item value="- ratio"/>
-			<item value="1.2"/>
-			<item value="1.2 - "/>
-			<item value="1.1 - "/>
-			<item value="new Line"/>
-			<item value="getFrictionLevel"/>
-			<item value="Find"/>
+			<item value="invalidate"/>
+			<item value="mVelocityTracker"/>
+			<item value="ball"/>
+			<item value="switch"/>
+			<item value="switch(ac"/>
+			<item value="switch(action)"/>
+			<item value="log"/>
+			<item value="recycle"/>
 		</list>
 		<list key="replacehistory">
 			<item value="surfaces"/>

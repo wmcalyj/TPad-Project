@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">BowlingExpirement</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="bowling_ball">Bowling Ball</string>
+    <string name="start">START</string>
+    <string name="reset">RESET</string>
+    <string name="texture1">Texture1</string>
+    <string name="texture2">Texture2</string>
+
+</resources>

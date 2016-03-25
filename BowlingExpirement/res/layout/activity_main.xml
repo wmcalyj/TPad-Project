@@ -80,7 +80,6 @@
             android:layout_centerHorizontal="true"
             android:adjustViewBounds="true"
             android:contentDescription="@string/bowling_ball"
-            android:scaleType="centerInside"
             android:src="@drawable/blue_bowling_ball"
             android:tag="bawling_ball" />
 
@@ -103,10 +102,11 @@
             android:text="@string/start" />
 
         <View
+            android:id="@+id/startLine"
             android:layout_width="match_parent"
             android:layout_height="2dp"
-            android:layout_above="@+id/ball"
-            android:layout_marginBottom="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="120dp"
             android:background="@android:color/holo_blue_bright" />
 
         <!--

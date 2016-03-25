@@ -9,6 +9,7 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.VelocityTrackerCompat;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.Menu;
@@ -20,6 +21,7 @@ import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationSet;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.RotateAnimation;
@@ -28,6 +30,8 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 
 public class MainActivity extends Activity {
 
@@ -38,13 +42,23 @@ public class MainActivity extends Activity {
 	ImageView background;
 
 	// TPad object defined in TPadLib
-	TPad mTpad;
+	static TPad mTpad;
 
 	static float ratio = 1.0f;
 
 	ImageView ball;
 
 	private VelocityTracker mVelocityTracker = null;
+
+	private int yDelta, yOffset;
+	private static float lineY;
+
+	private int originalX;
+	private int originalY;
+	private boolean crossLine = false;
+	private boolean rolled = false;
+
+	private int currentImageResource;
 
 	// Create the bowling animation
 	public static RotateAnimation createImageRotationAnimation(
@@ -63,24 +77,47 @@ public class MainActivity extends Activity {
 	}
 
 	public static TranslateAnimation createTranslateAnimation(
-			ImageView imageView) {
+			ImageView imageView, float vy) {
+		Log.d("", "vy passed: " + vy);
+		double newSpeed = Math.pow(Math.abs(vy), 0.5) * 20;
+		Log.d("", "new speed is: " + newSpeed);
 		TranslateAnimation translateAmination = new TranslateAnimation(
-				Animation.RELATIVE_TO_PARENT, 0f, Animation.RELATIVE_TO_PARENT,
-				0f, Animation.RELATIVE_TO_PARENT, 0.0f,
-				Animation.RELATIVE_TO_PARENT, (-0.95f * ratio));
+				Animation.RELATIVE_TO_PARENT, 0.0f,
+				Animation.RELATIVE_TO_PARENT, 0.0f, Animation.RELATIVE_TO_SELF,
+				0.0f, Animation.RELATIVE_TO_PARENT, (-0.95f * ratio));
 		translateAmination.setRepeatCount(0);
 		translateAmination.setInterpolator(new DecelerateInterpolator());
-		translateAmination.setDuration((long) (2000 / ratio));
-		translateAmination.setFillAfter(true);
+		translateAmination.setDuration((long) (1000000 / (newSpeed / ratio)));
 		return translateAmination;
 	}
 
-	public static Animation createBowlingMovement(ImageView imageView) {
+	public static Animation createBowlingMovement(ImageView imageView, float vy) {
 		RotateAnimation rolling = createImageRotationAnimation(imageView);
-		TranslateAnimation translate = createTranslateAnimation(imageView);
+		TranslateAnimation translate = createTranslateAnimation(imageView, vy);
 		AnimationSet animations = new AnimationSet(false);
 		animations.addAnimation(rolling);
 		animations.addAnimation(translate);
+		animations.setAnimationListener(new AnimationListener() {
+			// This should be the correct place to set onAnimationEnd action
+			// Namely, update the ball position, however, a work around is to
+			// set the flag globally and only reset them when reset is clicked
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				// TODO
+				mTpad.turnOff();
+
+			}
+
+			@Override
+			public void onAnimationStart(Animation animation) {
+				// Nothing
+			}
+
+			@Override
+			public void onAnimationRepeat(Animation animation) {
+				// Nothing
+			}
+		});
 		animations.setFillAfter(true);
 
 		return animations;
@@ -91,6 +128,7 @@ public class MainActivity extends Activity {
 		mTpad = new TPadImpl(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		currentImageResource = R.drawable.glass_rain;
 
 		// Get all surfaces
 		ImageView[] textures = new ImageView[surfaces.length];
@@ -99,7 +137,15 @@ public class MainActivity extends Activity {
 		}
 		addTextureListener(textures);
 
+		View startLine = (View) findViewById(R.id.startLine);
+		RelativeLayout.LayoutParams lp = (LayoutParams) startLine
+				.getLayoutParams();
+		lineY = lp.bottomMargin;
+
 		ball = (ImageView) findViewById(R.id.ball);
+		LayoutParams bp = (LayoutParams) ball.getLayoutParams();
+		originalX = bp.leftMargin;
+		originalY = bp.bottomMargin;
 		addBollDragingListerner(ball);
 
 		background = (ImageView) findViewById(R.id.surface);
@@ -111,83 +157,93 @@ public class MainActivity extends Activity {
 	}
 
 	public void addBollDragingListerner(ImageView ball) {
+
 		ball.setOnTouchListener(new OnTouchListener() {
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				// TODO Auto-generated method stub
-
-				float y = event.getRawY();
 				int index = event.getActionIndex();
 				int action = event.getActionMasked();
 				int pointerId = event.getPointerId(index);
+				final int y = (int) event.getRawY();
 
 				switch (action) {
-				case MotionEvent.ACTION_DOWN:
-					// if (mVelocityTracker == null) {
-					// // Retrieve a new VelocityTracker object to watch the
-					// // velocity of a motion.
-					// mVelocityTracker = VelocityTracker.obtain();
-					// } else {
-					// // Reset the velocity tracker back to its initial state.
-					// mVelocityTracker.clear();
-					// }
-					// // Add a user's movement to the tracker.
-					// mVelocityTracker.addMovement(event);
-					// touch_start(x, y);
-					// invalidate();
-					Log.d("", "Y position: " + event.getRawY());
-					y = event.getRawY();// Record where y is
+				case MotionEvent.ACTION_DOWN: {
+					mTpad.sendFriction(1.4f - ratio);
+					RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) v
+							.getLayoutParams();
+					yDelta = y - lParams.topMargin;
+					yOffset = lParams.bottomMargin;
+
+					if (mVelocityTracker == null) {
+						// Retrieve a new VelocityTracker object to watch the
+						// velocity of a motion.
+						mVelocityTracker = VelocityTracker.obtain();
+					} else {
+						// Reset the velocity tracker back to its initial state.
+						mVelocityTracker.clear();
+					}
+					// Add a user's movement to the tracker.
+					mVelocityTracker.addMovement(event);
 					break;
-				case MotionEvent.ACTION_MOVE:
-					// mVelocityTracker.addMovement(event);
-					// When you want to determine the velocity, call
-					// computeCurrentVelocity(). Then call getXVelocity()
-					// and getYVelocity() to retrieve the velocity for each
-					// pointer
-					// ID.
-					// mVelocityTracker.computeCurrentVelocity(1000);
-					// Log velocity of pixels per second
-					// Best practice to use VelocityTrackerCompat where
-					// possible.
-					// float vx = VelocityTrackerCompat.getXVelocity(
-					// mVelocityTracker, pointerId);
-					// float vy = VelocityTrackerCompat.getYVelocity(
-					// mVelocityTracker, pointerId);
-					// float frictionLevel = getFrictionLevel(vx, vy);
-					// mTpad.sendFriction(frictionLevel);
-					// Log.d("", "X velocity: " + vx);
-					// Log.d("", "Y velocity: " + vy);
-					// v.setX(event.getX());
-					Log.d("", "Y position on move: " + event.getRawY());
-					Log.d("", "Y position of view: " + v.getY());
-					float newy = event.getRawY();
-					float dy = newy - y;
-					Log.d("", "DY is: " + dy);
-					v.setY(event.getRawY());
-					// touch_move(x, y);
-					// invalidate();
+				}
+
+				case MotionEvent.ACTION_MOVE: {
+					mTpad.sendFriction(1.4f - ratio);
+					mVelocityTracker.addMovement(event);
+					mVelocityTracker.computeCurrentVelocity(1000);
+					float vy = VelocityTrackerCompat.getYVelocity(
+							mVelocityTracker, pointerId);
+
+					if (!crossLine) {
+						// When you want to determine the velocity, call
+						// computeCurrentVelocity(). Then call getXVelocity()
+						// and getYVelocity() to retrieve the velocity for each
+						// pointer
+						// ID.
+						RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) v
+								.getLayoutParams();
+						layoutParams.bottomMargin = yDelta - y + yOffset;
+						v.setLayoutParams(layoutParams);
+
+						Log.d("", "vy - " + vy);
+
+						if (layoutParams.bottomMargin + v.getHeight() >= lineY) {
+							crossLine = true;
+							Log.d("", "Cross line");
+						}
+					}
+					if (crossLine && !rolled) {
+
+						Animation bowling = createBowlingMovement(
+								(ImageView) v, vy);
+						v.startAnimation(bowling);
+						rolled = true;
+
+					}
+
 					break;
-				case MotionEvent.ACTION_UP:
-					// touch_up();
-					// invalidate();
+
+				}
+
+				case MotionEvent.ACTION_UP: {
 					// Return a VelocityTracker object back to be re-used by
 					// others.
-					// mVelocityTracker.recycle();
-					// mVelocityTracker = null;
-					// mTpad.turnOff();
-					Log.d("", "Y position on up: " + event.getRawY());
-					v.setY(event.getRawY());
+					mVelocityTracker.recycle();
+					mVelocityTracker = null;
+					mTpad.turnOff();
 					v.invalidate();
+				}
 					break;
-				case MotionEvent.ACTION_CANCEL:
-					// mVelocityTracker.recycle();
-					// mVelocityTracker = null;
-					// mTpad.turnOff();
-					Log.d("", "Y position on cancel: " + event.getRawY());
-					v.setY(event.getRawY());
+				case MotionEvent.ACTION_CANCEL: {
+					mVelocityTracker.recycle();
+					mVelocityTracker = null;
 					v.invalidate();
+					mTpad.turnOff();
+				}
 					break;
+
 				}
 				return true;
 			}
@@ -203,13 +259,23 @@ public class MainActivity extends Activity {
 					switch (v.getId()) {
 					case R.id.texture1:
 						background.setImageResource(R.drawable.glass_rain);
+						ratio = 1.0f;
+						currentImageResource = R.drawable.glass_rain;
+						stopAction(null);
+
 						break;
 					case R.id.texture2:
 						background
 								.setImageResource(R.drawable.basketball_cover);
+						currentImageResource = R.drawable.basketball_cover;
+						ratio = 0.6f;
+						stopAction(null);
 						break;
 					case R.id.texture3:
 						background.setImageResource(R.drawable.rug);
+						currentImageResource = R.drawable.rug;
+						ratio = 0.3f;
+						stopAction(null);
 						break;
 					default:
 						break;
@@ -224,7 +290,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				ball.clearAnimation();
-				Animation bowling = createBowlingMovement(ball);
+				Animation bowling = createBowlingMovement(ball, 2000);
 				ball.startAnimation(bowling);
 				long time = bowling.getDuration();
 				mTpad.sendFriction(1.4f - ratio);
@@ -245,11 +311,23 @@ public class MainActivity extends Activity {
 		stop.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				ball.clearAnimation();
-				mTpad.turnOff();
+				stopAction(arg0);
 			}
 		});
 
+	}
+
+	public void stopAction(View arg0) {
+		mTpad.turnOff();
+		ball.clearAnimation();
+		background = (ImageView) findViewById(R.id.surface);
+		background.setImageResource(currentImageResource);
+		LayoutParams bp = (LayoutParams) ball.getLayoutParams();
+		bp.leftMargin = originalX;
+		bp.bottomMargin = originalY;
+		ball.setLayoutParams(bp);
+		crossLine = false;
+		rolled = false;
 	}
 
 	public class ImageAdapter extends BaseAdapter {

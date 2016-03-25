@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="android.view.View.OnTouchListener"/>
 <fullyQualifiedTypeName name="android.graphics.Bitmap"/>
 <fullyQualifiedTypeName name="com.example.findspecialspot.R.drawable"/>
-<fullyQualifiedTypeName name="android.util.Log"/>
 <fullyQualifiedTypeName name="android.graphics.PorterDuff.Mode"/>
 <fullyQualifiedTypeName name="android.view.View.OnClickListener"/>
 <fullyQualifiedTypeName name="android.widget.LinearLayout"/>
@@ -16,9 +14,13 @@
 <fullyQualifiedTypeName name="android.R.layout"/>
 <fullyQualifiedTypeName name="com.example.speedanddraw.SpeedAndDraw"/>
 <fullyQualifiedTypeName name="com.example.bowlingexpirement.R.layout"/>
-<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.drawable"/>
 <fullyQualifiedTypeName name="android.R.interpolator"/>
 <fullyQualifiedTypeName name="android.view.animation.LinearInterpolator"/>
-<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.id"/>
 <fullyQualifiedTypeName name="android.os.Handler"/>
+<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.id"/>
+<fullyQualifiedTypeName name="com.example.bowlingexpirement.R.drawable"/>
+<fullyQualifiedTypeName name="android.view.View.OnDragListener"/>
+<fullyQualifiedTypeName name="android.util.Log"/>
+<fullyQualifiedTypeName name="android.view.View.OnLongClickListener"/>
+<fullyQualifiedTypeName name="android.view.View.OnTouchListener"/>
 </qualifiedTypeNameHistroy>

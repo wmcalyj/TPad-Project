@@ -1,0 +1,11 @@
+<resources>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="drawable_gears_intrinsic_width">128dp</dimen>
+    <dimen name="drawable_gears_intrinsic_height">128dp</dimen>
+    <dimen name="drawable_gears_tooth_deep">5dp</dimen>
+
+</resources>

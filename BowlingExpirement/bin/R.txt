@@ -6,11 +6,12 @@ int drawable bottles 0x7f020002
 int drawable glass_rain 0x7f020003
 int drawable ic_launcher 0x7f020004
 int drawable rug 0x7f020005
-int id action_settings 0x7f090009
+int id action_settings 0x7f09000a
 int id ball 0x7f090006
 int id canvas 0x7f090004
 int id reset 0x7f090007
 int id start 0x7f090008
+int id startLine 0x7f090009
 int id surface 0x7f090005
 int id texture1 0x7f090001
 int id texture2 0x7f090002
