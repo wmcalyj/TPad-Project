@@ -9,7 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
-import java.util.List;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -19,8 +18,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.hapticebook.data.book.impl.Book;
-import com.example.hapticebook.data.book.impl.PageImpl;
+import com.example.hapticebook.data.book.Book;
+import com.example.hapticebook.data.book.impl.BookImpl;
 
 public class MainActivity extends Activity {
 
@@ -86,13 +85,8 @@ public class MainActivity extends Activity {
 			input = new ObjectInputStream(new FileInputStream(new File(
 					new File(getFilesDir(), "") + File.separator + filename)));
 			mBook = (Book) input.readObject();
-			List<PageImpl> mPages = mBook.getAllPages();
-			if (mPages.size() == 0) {
-				Log.v("serialization", "book is empty");
-			} else {
-				for (int i = 0; i < mPages.size(); i++) {
-					Log.v("serialization", "book " + i);
-				}
+			if (mBook.isEmpty()) {
+				Log.d("", "Book is empty");
 			}
 
 			input.close();
@@ -107,7 +101,7 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		} finally {
 			if (mBook == null) {
-				mBook = new Book();
+				mBook = new BookImpl();
 				File dir = getFilesDir();
 				if (dir != null) {
 					mBook.setFilePath(dir);

@@ -15,7 +15,7 @@ import android.util.Log;
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.data.book.Page;
 
-public class Book extends MainActivity implements Serializable {
+public class BookBackup extends MainActivity implements Serializable {
 
 	/**
 	 * 
@@ -25,7 +25,7 @@ public class Book extends MainActivity implements Serializable {
 	private int current;
 	private File mFilePath;
 
-	public Book() {
+	public BookBackup() {
 		pages = new ArrayList<PageImpl>();
 		current = 0;
 	}
@@ -102,7 +102,8 @@ public class Book extends MainActivity implements Serializable {
 	}
 
 	public Page createNewPage() {
-		return new PageImpl(mFilePath.getAbsolutePath());
+		// return new PageImpl(mFilePath.getAbsolutePath());
+		return null;
 	}
 
 	public void addAndSavePages(List<PageImpl> pages) {

@@ -88,10 +88,6 @@ public class PageImpl implements Serializable, Page {
 		return mImage;
 	}
 
-	public void setmImage(PageImage mImage) {
-		this.mImage = mImage;
-	}
-
 	public void setmImage(Bitmap mImage) {
 		this.mImage = new PageImage(mImage);
 	}
@@ -157,6 +153,48 @@ public class PageImpl implements Serializable, Page {
 			mRecorder.release();
 			mRecorder = null;
 		}
+	}
+
+	@Override
+	public void setImage(Bitmap mImage) {
+		this.mImage = new PageImage(mImage);
+	}
+
+	@Override
+	public void setImage(PageImage pageImage) {
+		this.mImage = pageImage;
+
+	}
+
+	@Override
+	public PageImage getImage() {
+		return this.mImage;
+	}
+
+	@Override
+	public Bitmap getBitmapImage() {
+		if (mImage != null) {
+			return this.mImage.getImage();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean isAudioAvailable() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public MediaPlayer startPlayingAudio() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void stopPlayingAudio(MediaPlayer mediaPlayer) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

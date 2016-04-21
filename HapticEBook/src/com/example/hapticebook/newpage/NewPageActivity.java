@@ -22,8 +22,8 @@ import android.widget.Toast;
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.PageActivity;
 import com.example.hapticebook.R;
-import com.example.hapticebook.data.book.impl.Book;
-import com.example.hapticebook.data.book.impl.PageImpl;
+import com.example.hapticebook.data.book.Book;
+import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.newpage.camera.CameraPreview;
 
 public class NewPageActivity extends MainActivity {
@@ -214,10 +214,10 @@ public class NewPageActivity extends MainActivity {
 		if (imageTaken != null) {
 
 			Book book = getMBook();
-			PageImpl newPage = book.createNewPage();
-			newPage.setmImage(imageTaken);
+			Page newPage = book.createNewPage();
+			newPage.setImage(imageTaken);
 
-			book.addPage(newPage);
+			book.addNewPage(newPage);
 			book.saveBook();
 			if (imageFile != null) {
 				imageFile.delete();

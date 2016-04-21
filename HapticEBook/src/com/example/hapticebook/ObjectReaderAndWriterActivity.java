@@ -14,7 +14,7 @@ import java.util.List;
 import android.app.Activity;
 import android.util.Log;
 
-import com.example.hapticebook.data.book.impl.Book;
+import com.example.hapticebook.data.book.impl.BookBackup;
 import com.example.hapticebook.data.book.impl.PageImpl;
 
 public class ObjectReaderAndWriterActivity extends Activity {
@@ -25,7 +25,7 @@ public class ObjectReaderAndWriterActivity extends Activity {
 		try {
 			input = new ObjectInputStream(new FileInputStream(new File(
 					new File(getFilesDir(), "") + File.separator + filename)));
-			Book mBook = (Book) input.readObject();
+			BookBackup mBook = (BookBackup) input.readObject();
 			List<PageImpl> mPages = mBook.getAllPages();
 			if (mPages.size() == 0) {
 				Log.v("serialization", "book is empty");
@@ -49,7 +49,7 @@ public class ObjectReaderAndWriterActivity extends Activity {
 	}
 
 	public void save(Object mObject) {
-		Book myPersonObject = new Book();
+		BookBackup myPersonObject = new BookBackup();
 		// myPersonObject.setA(432);
 		String filename = "book.srl";
 		ObjectOutput out = null;

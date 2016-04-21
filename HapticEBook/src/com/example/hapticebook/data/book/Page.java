@@ -1,5 +1,10 @@
 package com.example.hapticebook.data.book;
 
+import android.graphics.Bitmap;
+import android.media.MediaPlayer;
+
+import com.example.hapticebook.data.book.impl.PageImage;
+
 // This is the interface for Page object
 public interface Page {
 	/**
@@ -54,5 +59,24 @@ public interface Page {
 	 *            set next existing page
 	 */
 	public void setNextAvailablePage(Page nextAvailablePage);
+
+	/**
+	 * 
+	 * @param image
+	 *            the image attached to the current page
+	 */
+	public void setImage(Bitmap image);
+
+	public void setImage(PageImage pageImage);
+
+	public PageImage getImage();
+
+	public Bitmap getBitmapImage();
+
+	public boolean isAudioAvailable();
+
+	public MediaPlayer startPlayingAudio();
+
+	public void stopPlayingAudio(MediaPlayer mediaPlayer);
 
 }

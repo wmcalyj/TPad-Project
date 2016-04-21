@@ -1,6 +1,5 @@
 package com.example.hapticebook;
 
-import java.io.File;
 import java.io.Serializable;
 
 import android.content.Intent;
@@ -16,8 +15,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.example.hapticebook.data.book.impl.Book;
-import com.example.hapticebook.data.book.impl.PageImpl;
+import com.example.hapticebook.data.book.Book;
+import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.edit.EditPageActivity;
 import com.example.hapticebook.newpage.NewPageActivity;
 
@@ -27,7 +26,7 @@ public class PageActivity extends MainActivity {
 	private ImageView leftFooter;
 	private ImageView rightFooter;
 	private Book book = getMBook();
-	private PageImpl currentPage;
+	private Page currentPage;
 	private boolean audioOn = false;
 	private MediaPlayer mPlayer;
 
@@ -36,7 +35,7 @@ public class PageActivity extends MainActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.page);
 
-		PageImpl p;
+		Page p;
 		Bundle b = getIntent().getExtras();
 		if (b != null && b.getInt(PAGE_ACTIVITY_KEY) == PAGE_ACTIVITY_NEW_PHOTO) {
 			p = book.goToLastPage();
@@ -46,7 +45,7 @@ public class PageActivity extends MainActivity {
 
 		currentPage = p;
 
-		Bitmap bm = p.getmImage().getImage();
+		Bitmap bm = p.getImage().getImage();
 		image = (ImageView) findViewById(R.id.page_image);
 		image.setImageBitmap(bm);
 
@@ -63,8 +62,8 @@ public class PageActivity extends MainActivity {
 	}
 
 	private void setPlayAudio() {
-		File recordFile = currentPage.getRecordFile();
-		if (recordFile != null && recordFile.exists()) {
+		boolean audioAvailable = currentPage.isAudioAvailable();
+		if (audioAvailable) {
 			Log.d("", "Record file exists");
 			RelativeLayout root = (RelativeLayout) findViewById(R.id.page_page);
 			ImageView audio = (ImageView) findViewById(R.id.page_play_button);
@@ -80,12 +79,12 @@ public class PageActivity extends MainActivity {
 					if (!audioOn) {
 						((ImageView) v).setImageResource(R.drawable.audio_blue);
 						audioOn = true;
-						mPlayer = currentPage.startPlayingRecording();
+						mPlayer = currentPage.startPlayingAudio();
 						mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
 							@Override
 							public void onCompletion(MediaPlayer mp) {
-								currentPage.stopPlayingRecording(mp);
+								currentPage.stopPlayingAudio(mp);
 								((ImageView) v)
 										.setImageResource(R.drawable.audio);
 								audioOn = false;
@@ -95,7 +94,7 @@ public class PageActivity extends MainActivity {
 					} else {
 						((ImageView) v).setImageResource(R.drawable.audio);
 						audioOn = false;
-						currentPage.stopPlayingRecording(mPlayer);
+						currentPage.stopPlayingAudio(mPlayer);
 					}
 
 				}
@@ -125,9 +124,9 @@ public class PageActivity extends MainActivity {
 			prev.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					PageImpl p = book.goToPrevPage();
+					Page p = book.goToPrevPage();
 					checkFooter();
-					Bitmap bm = p.getmImage().getImage();
+					Bitmap bm = p.getBitmapImage();
 					image = (ImageView) findViewById(R.id.page_image);
 					image.setImageBitmap(bm);
 					currentPage = p;
@@ -148,9 +147,9 @@ public class PageActivity extends MainActivity {
 			next.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					PageImpl p = book.goToNextPage();
+					Page p = book.goToNextPage();
 					checkFooter();
-					Bitmap bm = p.getmImage().getImage();
+					Bitmap bm = p.getBitmapImage();
 					image = (ImageView) findViewById(R.id.page_image);
 					image.setImageBitmap(bm);
 					currentPage = p;
@@ -185,10 +184,10 @@ public class PageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				book.deleteCurrentPage();
-				PageImpl p = book.getCurrentPage();
+				Page p = book.getCurrentPage();
 				checkFooter();
 				if (p != null) {
-					Bitmap bm = p.getmImage().getImage();
+					Bitmap bm = p.getBitmapImage();
 					image = (ImageView) findViewById(R.id.page_image);
 					image.setImageBitmap(bm);
 					currentPage = p;
@@ -208,7 +207,7 @@ public class PageActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
-				PageImpl currentPage = book.getCurrentPage();
+				Page currentPage = book.getCurrentPage();
 				Intent intent = new Intent(PageActivity.this,
 						EditPageActivity.class);
 				intent.putExtra("currentPage", (Serializable) currentPage);
@@ -221,13 +220,13 @@ public class PageActivity extends MainActivity {
 	private void checkFooter() {
 		leftFooter = (ImageView) findViewById(R.id.page_footer_left);
 		rightFooter = (ImageView) findViewById(R.id.page_footer_right);
-		Log.d("", "Cuurent page is: " + book.getCurrent());
-		if (book.getCurrent() == 0) {
+
+		if (book.isCurrentPageFirstPage()) {
 			leftFooter.setVisibility(View.INVISIBLE);
 		} else {
 			leftFooter.setVisibility(View.VISIBLE);
 		}
-		if (book.getCurrent() == book.getAllPages().size() - 1) {
+		if (book.isCurrentPageLastPage()) {
 			rightFooter.setVisibility(View.INVISIBLE);
 		} else {
 			rightFooter.setVisibility(View.VISIBLE);
@@ -268,8 +267,8 @@ public class PageActivity extends MainActivity {
 		switch (newPageActivityFlag) {
 
 		case PAGE_ACTIVITY_NEW_PHOTO:
-			PageImpl p = book.goToLastPage();
-			Bitmap bm = p.getmImage().getImage();
+			Page p = book.goToLastPage();
+			Bitmap bm = p.getBitmapImage();
 			image = (ImageView) findViewById(R.id.page_image);
 			image.setImageBitmap(bm);
 			currentPage = p;
