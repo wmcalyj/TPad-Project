@@ -111,7 +111,7 @@ public class EditPageActivity extends MainActivity {
 			public void onClick(final View v) {
 				if (playOn) {
 					// Audio is on, turn off
-					currentPage.stopPlayingRecording(player);
+					currentPage.stopPlayingAudio(player);
 					((ImageView) v).setImageResource(R.drawable.audio);
 					playOn = false;
 				} else {
@@ -119,12 +119,12 @@ public class EditPageActivity extends MainActivity {
 
 					((ImageView) v).setImageResource(R.drawable.audio_blue);
 					playOn = true;
-					player = currentPage.startPlayingRecording();
+					player = currentPage.startPlayingAudio();
 					player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
 						@Override
 						public void onCompletion(MediaPlayer mp) {
-							currentPage.stopPlayingRecording(mp);
+							currentPage.stopPlayingAudio(mp);
 							((ImageView) v).setImageResource(R.drawable.audio);
 							playOn = false;
 

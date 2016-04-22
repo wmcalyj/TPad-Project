@@ -2,10 +2,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.hapticebook.MainActivity" >
 
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never"
-        android:title="@string/action_settings"/>
+    <group android:checkableBehavior="single" >
+        <item
+            android:id="@+id/student_mode"
+            android:checked="true"
+            android:orderInCategory="100"
+            android:showAsAction="never"
+            android:title="@string/student_mode"/>
+        <item
+            android:id="@+id/teacher_mode"
+            android:orderInCategory="100"
+            android:showAsAction="never"
+            android:title="@string/teacher_mode"/>
+    </group>
 
 </menu>

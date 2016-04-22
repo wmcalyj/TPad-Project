@@ -14,6 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
@@ -35,23 +36,22 @@ public class PageActivity extends MainActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.page);
 
-		Page p;
 		Bundle b = getIntent().getExtras();
 		if (b != null && b.getInt(PAGE_ACTIVITY_KEY) == PAGE_ACTIVITY_NEW_PHOTO) {
-			p = book.goToLastPage();
+			currentPage = book.goToLastPage();
+
+			Log.d("", "Page Activity, go to last page");
 		} else {
-			p = book.goToFirstPage();
+			currentPage = book.goToFirstPage();
+			Log.d("", "Page Activity, go to first page");
 		}
 
-		currentPage = p;
-
-		Bitmap bm = p.getImage().getImage();
+		Bitmap bm = currentPage.getBitmapImage();
 		image = (ImageView) findViewById(R.id.page_image);
 		image.setImageBitmap(bm);
 
 		bringHeaderSetToFront();
-		setPlayAudio();
-		checkFooter();
+		refresh();
 		addAllButtonListeners();
 	}
 
@@ -62,8 +62,8 @@ public class PageActivity extends MainActivity {
 	}
 
 	private void setPlayAudio() {
-		boolean audioAvailable = currentPage.isAudioAvailable();
-		if (audioAvailable) {
+
+		if (currentPage != null && currentPage.isAudioAvailable()) {
 			Log.d("", "Record file exists");
 			RelativeLayout root = (RelativeLayout) findViewById(R.id.page_page);
 			ImageView audio = (ImageView) findViewById(R.id.page_play_button);
@@ -124,16 +124,8 @@ public class PageActivity extends MainActivity {
 			prev.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Page p = book.goToPrevPage();
-					checkFooter();
-					Bitmap bm = p.getBitmapImage();
-					image = (ImageView) findViewById(R.id.page_image);
-					image.setImageBitmap(bm);
-					currentPage = p;
-					setPlayAudio();
-					addPrevListener();
-					addNextListener();
-
+					currentPage = book.goToPrevPage();
+					refresh();
 				}
 
 			});
@@ -147,15 +139,8 @@ public class PageActivity extends MainActivity {
 			next.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Page p = book.goToNextPage();
-					checkFooter();
-					Bitmap bm = p.getBitmapImage();
-					image = (ImageView) findViewById(R.id.page_image);
-					image.setImageBitmap(bm);
-					currentPage = p;
-					setPlayAudio();
-					addPrevListener();
-					addNextListener();
+					currentPage = book.goToNextPage();
+					refresh();
 				}
 
 			});
@@ -184,18 +169,14 @@ public class PageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				book.deleteCurrentPage();
-				Page p = book.getCurrentPage();
-				checkFooter();
-				if (p != null) {
-					Bitmap bm = p.getBitmapImage();
-					image = (ImageView) findViewById(R.id.page_image);
-					image.setImageBitmap(bm);
-					currentPage = p;
-					setPlayAudio();
+				currentPage = book.getCurrentPage();
+				if (currentPage == null) {
+					// Book is now empty
+					goToLandingPage();
 				}
-				addPrevListener();
-				addNextListener();
+				refresh();
 			}
+
 		});
 
 	}
@@ -217,26 +198,86 @@ public class PageActivity extends MainActivity {
 
 	}
 
-	private void checkFooter() {
+	private void goToLandingPage() {
+		Intent intent = new Intent(PageActivity.this, LandingActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		startActivity(intent);
+	}
+
+	/**
+	 * This method should be called when the footer needs to be refreshed. Also,
+	 * when a mode is switched, this method should be called to decide if the
+	 * "Deleted" TextView should be shown
+	 */
+	private void refresh() {
+		if (this.currentPage == null) {
+			return;
+		}
+		// Set the visibility of TextView (deleted)
+		if (!this.currentPage.isAvailable()) {
+			TextView imageDeleted = (TextView) findViewById(R.id.deleted);
+			imageDeleted.setVisibility(View.VISIBLE);
+		} else {
+			TextView imageDeleted = (TextView) findViewById(R.id.deleted);
+			imageDeleted.setVisibility(View.INVISIBLE);
+		}
+
+		// Set the left footer and right footer (go to previous/next page)
 		leftFooter = (ImageView) findViewById(R.id.page_footer_left);
 		rightFooter = (ImageView) findViewById(R.id.page_footer_right);
 
 		if (book.isCurrentPageFirstPage()) {
 			leftFooter.setVisibility(View.INVISIBLE);
+			Log.d("", "Current page is first page");
 		} else {
 			leftFooter.setVisibility(View.VISIBLE);
+			addPrevListener();
 		}
 		if (book.isCurrentPageLastPage()) {
 			rightFooter.setVisibility(View.INVISIBLE);
+			Log.d("", "Current page is last page");
 		} else {
 			rightFooter.setVisibility(View.VISIBLE);
+			addNextListener();
 		}
+
+		// Set audio icon
+		setPlayAudio();
+
+		// Set new image source
+		Bitmap bm = currentPage.getBitmapImage();
+		image = (ImageView) findViewById(R.id.page_image);
+		image.setImageBitmap(bm);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+
+		MenuItem student = menu.findItem(R.id.student_mode);
+		MenuItem teacher = menu.findItem(R.id.teacher_mode);
+
+		if (book.isStudentMode()) {
+			student.setChecked(true);
+		}
+		if (book.isTeacherMode()) {
+			teacher.setChecked(true);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem student = menu.findItem(R.id.student_mode);
+		MenuItem teacher = menu.findItem(R.id.teacher_mode);
+
+		if (book.isStudentMode()) {
+			student.setChecked(true);
+		}
+		if (book.isTeacherMode()) {
+			teacher.setChecked(true);
+		}
 		return true;
 	}
 
@@ -245,18 +286,31 @@ public class PageActivity extends MainActivity {
 		// Handle action bar item clicks here. The action bar will
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+		boolean selected = super.onOptionsItemSelected(item);
+		if (item.getItemId() == R.id.student_mode) {
+			if (!currentPage.isAvailable()) {
+				// Switching back to student mode and the current page is
+				// unavailable, jump to the first available page
+				this.currentPage = book.goToFirstPage();
+				// If there is no first available page, the book is empty, go to
+				// landing page
+				if (this.currentPage == null) {
+					goToLandingPage();
+					return selected;
+				}
+			}
 		}
-		return super.onOptionsItemSelected(item);
+		refresh();
+		return selected;
 	}
 
 	@Override
 	protected void onNewIntent(Intent intent) {
+		Log.d("", "New Intent");
 		if (intent != null)
 			setIntent(intent);
 		setPlayAudio();
+		refresh();
 	}
 
 	@Override
@@ -267,13 +321,8 @@ public class PageActivity extends MainActivity {
 		switch (newPageActivityFlag) {
 
 		case PAGE_ACTIVITY_NEW_PHOTO:
-			Page p = book.goToLastPage();
-			Bitmap bm = p.getBitmapImage();
-			image = (ImageView) findViewById(R.id.page_image);
-			image.setImageBitmap(bm);
-			currentPage = p;
-			setPlayAudio();
-			checkFooter();
+			currentPage = book.goToLastPage();
+			refresh();
 			addAllButtonListeners();
 			break;
 		case PAGE_ACTIVITY_DEFAULT:

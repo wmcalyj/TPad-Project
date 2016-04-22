@@ -58,6 +58,20 @@
                 android:contentDescription="@string/tool_new_button"
                 android:maxHeight="60dp"
                 android:src="@drawable/new_page" />
+
+            <TextView
+                android:id="@+id/deleted"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/page_edit_button"
+                android:layout_toStartOf="@id/page_new_button"
+                android:gravity="center"
+                android:maxHeight="60dp"
+                android:text="@string/deleted_image"
+                android:textColor="#ff0000"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:visibility="invisible" />
         </RelativeLayout>
     </FrameLayout>
 

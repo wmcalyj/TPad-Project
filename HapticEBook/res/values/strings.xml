@@ -25,5 +25,8 @@
     <string name="new_page_cancel">Cancel</string>
     <string name="page_play_audio">Page Play Audio Ico</string>
     <string name="edit_tool_cancel">Edit page cancel button</string>
+    <string name="student_mode">Student</string>
+    <string name="teacher_mode">Teacher</string>
+    <string name="deleted_image">Deleted</string>
 
 </resources>

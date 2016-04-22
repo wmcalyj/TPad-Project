@@ -20,7 +20,6 @@ int drawable record_red 0x7f020010
 int drawable spiral_notebook 0x7f020011
 int drawable touch 0x7f020012
 int drawable touch_orange 0x7f020013
-int id action_settings 0x7f090027
 int id camera_button 0x7f090019
 int id color1 0x7f090003
 int id color2 0x7f090004
@@ -32,6 +31,7 @@ int id color7 0x7f090009
 int id color8 0x7f09000a
 int id color9 0x7f09000b
 int id delete_button 0x7f090017
+int id deleted 0x7f090022
 int id edit_button 0x7f090016
 int id edit_image 0x7f090013
 int id edit_page 0x7f090002
@@ -41,7 +41,7 @@ int id edit_tool_paint 0x7f09000f
 int id edit_tool_play 0x7f090011
 int id edit_tool_record 0x7f090010
 int id edit_tool_save 0x7f090012
-int id footer 0x7f090024
+int id footer 0x7f090025
 int id footer_right_main 0x7f090001
 int id header 0x7f090000
 int id header_tools 0x7f090015
@@ -52,13 +52,15 @@ int id new_page_cancel 0x7f09001b
 int id new_page_save 0x7f09001a
 int id page_delete_button 0x7f090020
 int id page_edit_button 0x7f09001f
-int id page_footer_left 0x7f090026
-int id page_footer_right 0x7f090025
+int id page_footer_left 0x7f090027
+int id page_footer_right 0x7f090026
 int id page_header_set 0x7f09001e
-int id page_image 0x7f090023
+int id page_image 0x7f090024
 int id page_new_button 0x7f090021
 int id page_page 0x7f09001d
-int id page_play_button 0x7f090022
+int id page_play_button 0x7f090023
+int id student_mode 0x7f090028
+int id teacher_mode 0x7f090029
 int id tool_set 0x7f09000c
 int layout activity_main 0x7f030000
 int layout annotate 0x7f030001
@@ -70,6 +72,7 @@ int menu main 0x7f080000
 int string action_settings 0x7f060004
 int string app_intro 0x7f060005
 int string app_name 0x7f060000
+int string deleted_image 0x7f06001a
 int string edit_tool_cancel 0x7f060017
 int string edit_tool_edit 0x7f06000e
 int string edit_tool_feel 0x7f06000d
@@ -88,6 +91,8 @@ int string new_page_cancel 0x7f060015
 int string new_page_save 0x7f060014
 int string page_image 0x7f06000c
 int string page_play_audio 0x7f060016
+int string student_mode 0x7f060018
+int string teacher_mode 0x7f060019
 int string tool_delete_button 0x7f06000b
 int string tool_edit_button 0x7f060009
 int string tool_new_button 0x7f06000a

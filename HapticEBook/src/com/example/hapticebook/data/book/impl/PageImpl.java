@@ -3,6 +3,7 @@ package com.example.hapticebook.data.book.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.UUID;
 
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
@@ -28,8 +29,15 @@ public class PageImpl implements Serializable, Page {
 	// Next existing (not deleted) page
 	private Page nextAvailablePage;
 
+	// Is current page available (deleted or not deleted)
+	// Default is available (not deleted)
+	private boolean available = true;
+
+	private final UUID ID;
+
 	private PageImpl() {
-		// Do nothing, do not call Page
+		// Do nothing but set UUID, do not call Page
+		ID = UUID.randomUUID();
 	}
 
 	@Override
@@ -72,12 +80,24 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public void delete() {
-		this.prevAvailablePage.setNextAvailablePage(this.nextAvailablePage);
-		this.nextAvailablePage.setPrevAvailablePage(this.prevAvailablePage);
+		if (this.prevAvailablePage != null) {
+			this.prevAvailablePage.setNextAvailablePage(this.nextAvailablePage);
+		}
+		if (this.nextAvailablePage != null) {
+			this.nextAvailablePage.setPrevAvailablePage(this.prevAvailablePage);
+		}
+		this.prevAvailablePage = null;
+		this.nextAvailablePage = null;
+		this.available = false;
 	}
 
-	private PageImpl(String rootPath) {
-		this.mRecordFile = new File(rootPath + System.currentTimeMillis());
+	PageImpl(String rootPath) {
+		ID = UUID.randomUUID();
+		this.mRecordFile = new File(rootPath + "/" + System.currentTimeMillis());
+		this.prevAvailablePage = null;
+		this.prevPage = null;
+		this.nextAvailablePage = null;
+		this.nextPage = null;
 	}
 
 	public File getRecordFile() {
@@ -100,30 +120,7 @@ public class PageImpl implements Serializable, Page {
 		this.mHaptic = mHaptic;
 	}
 
-	public MediaPlayer startPlayingRecording() {
-		MediaPlayer mPlayer = new MediaPlayer();
-		try {
-			if (mRecordFile != null) {
-				mPlayer.setDataSource(mRecordFile.getAbsolutePath());
-				mPlayer.prepare();
-				mPlayer.start();
-			} else {
-				Log.d("", "mRecordFile is empty, cannot play");
-				return null;
-			}
-		} catch (IOException e) {
-			Log.e("", "play prepare() failed");
-			return null;
-		}
-		return mPlayer;
-	}
-
-	public void stopPlayingRecording(MediaPlayer mPlayer) {
-		mPlayer.reset();
-		mPlayer.release();
-		mPlayer = null;
-	}
-
+	@Override
 	public MediaRecorder startRecording() {
 
 		Log.d("", "mRecordFile is: " + mRecordFile);
@@ -146,6 +143,7 @@ public class PageImpl implements Serializable, Page {
 		return mRecorder;
 	}
 
+	@Override
 	public void stopRecording(MediaRecorder mRecorder) {
 		if (mRecorder != null) {
 			mRecorder.stop();
@@ -182,19 +180,60 @@ public class PageImpl implements Serializable, Page {
 	@Override
 	public boolean isAudioAvailable() {
 		// TODO Auto-generated method stub
-		return false;
+		if (mRecordFile == null || !mRecordFile.exists()) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
 	public MediaPlayer startPlayingAudio() {
-		// TODO Auto-generated method stub
-		return null;
+
+		MediaPlayer mPlayer = new MediaPlayer();
+		try {
+			if (mRecordFile != null) {
+				mPlayer.setDataSource(mRecordFile.getAbsolutePath());
+				mPlayer.prepare();
+				mPlayer.start();
+			} else {
+				Log.d("", "mRecordFile is empty, cannot play");
+				return null;
+			}
+		} catch (IOException e) {
+			Log.e("", "play prepare() failed");
+			return null;
+		}
+		return mPlayer;
 	}
 
 	@Override
-	public void stopPlayingAudio(MediaPlayer mediaPlayer) {
-		// TODO Auto-generated method stub
+	public void stopPlayingAudio(MediaPlayer mPlayer) {
+		mPlayer.reset();
+		mPlayer.release();
+		mPlayer = null;
+	}
+
+	@Override
+	public boolean isAvailable() {
+		if (available == false) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null
+				|| !other.getClass().isAssignableFrom(this.getClass())) {
+			return false;
+		}
+
+		return this.ID.equals(((PageImpl) other).ID);
 
 	}
 
+	@Override
+	public int hashCode() {
+		return ID.hashCode();
+	}
 }

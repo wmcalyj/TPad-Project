@@ -35,4 +35,12 @@ public interface Book {
 	public void setFilePath(File filePath);
 
 	public File getFilePath();
+
+	public void readAsTeacher();
+
+	void readAsStudent();
+
+	boolean isTeacherMode();
+
+	boolean isStudentMode();
 }
