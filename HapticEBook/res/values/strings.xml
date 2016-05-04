@@ -28,5 +28,10 @@
     <string name="student_mode">Student</string>
     <string name="teacher_mode">Teacher</string>
     <string name="deleted_image">Deleted</string>
+    <string name="annotate_save">Annotate save</string>
+    <string name="annotate_cancel">Annotate cancel</string>
+    <string name="filter_save">Filter save</string>
+    <string name="filter_cancel">Filter cancel</string>
+    <string name="filter_image">Filter image</string>
 
 </resources>

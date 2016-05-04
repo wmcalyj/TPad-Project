@@ -1,5 +1,7 @@
 package com.example.hapticebook.data.book;
 
+import java.io.File;
+
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -119,5 +121,7 @@ public interface Page {
 	MediaRecorder startRecording();
 
 	void stopRecording(MediaRecorder mRecorder);
+
+	public File getRecordFile();
 
 }

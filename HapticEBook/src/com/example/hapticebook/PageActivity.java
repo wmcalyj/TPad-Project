@@ -19,6 +19,8 @@ import android.widget.TextView;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.edit.EditPageActivity;
+import com.example.hapticebook.log.Action;
+import com.example.hapticebook.log.LogService;
 import com.example.hapticebook.newpage.NewPageActivity;
 
 public class PageActivity extends MainActivity {
@@ -52,7 +54,7 @@ public class PageActivity extends MainActivity {
 
 		bringHeaderSetToFront();
 		refresh();
-		addAllButtonListeners();
+		addHeaderButtonListeners();
 	}
 
 	private void bringHeaderSetToFront() {
@@ -79,6 +81,7 @@ public class PageActivity extends MainActivity {
 					if (!audioOn) {
 						((ImageView) v).setImageResource(R.drawable.audio_blue);
 						audioOn = true;
+						LogService.WriteToLog(Action.PLAY_AUDIO_PAGE_START);
 						mPlayer = currentPage.startPlayingAudio();
 						mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
@@ -94,6 +97,7 @@ public class PageActivity extends MainActivity {
 					} else {
 						((ImageView) v).setImageResource(R.drawable.audio);
 						audioOn = false;
+						LogService.WriteToLog(Action.PLAY_AUDIO_PAGE_STOP);
 						currentPage.stopPlayingAudio(mPlayer);
 					}
 
@@ -108,28 +112,27 @@ public class PageActivity extends MainActivity {
 
 	}
 
-	protected void addAllButtonListeners() {
+	protected void addHeaderButtonListeners() {
 		addNewPageListener();
-		addNextListener();
-		addPrevListener();
 		addDeletePageListener();
 		addEditPageListener();
 	}
 
 	private void addPrevListener() {
 		ImageView prev = (ImageView) findViewById(R.id.page_footer_left);
+		prev.setImageResource(R.drawable.corner_left);
 
-		if (prev.getVisibility() == View.VISIBLE) {
-			prev.setClickable(true);
-			prev.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					currentPage = book.goToPrevPage();
-					refresh();
-				}
+		prev.setClickable(true);
+		prev.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				currentPage = book.goToPrevPage();
+				LogService.WriteToLog(Action.PREVIOUS_PAGE);
+				refresh();
+			}
 
-			});
-		}
+		});
+
 	}
 
 	private void addNextListener() {
@@ -140,6 +143,7 @@ public class PageActivity extends MainActivity {
 				@Override
 				public void onClick(View v) {
 					currentPage = book.goToNextPage();
+					LogService.WriteToLog(Action.NEXT_PAGE);
 					refresh();
 				}
 
@@ -153,6 +157,7 @@ public class PageActivity extends MainActivity {
 		newPage.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				LogService.WriteToLog(Action.ADD_PAGE);
 				Intent intent = new Intent(PageActivity.this,
 						NewPageActivity.class);
 
@@ -169,6 +174,7 @@ public class PageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				book.deleteCurrentPage();
+				LogService.WriteToLog(Action.DELETE);
 				currentPage = book.getCurrentPage();
 				if (currentPage == null) {
 					// Book is now empty
@@ -189,6 +195,7 @@ public class PageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				Page currentPage = book.getCurrentPage();
+				LogService.WriteToLog(Action.EDIT);
 				Intent intent = new Intent(PageActivity.this,
 						EditPageActivity.class);
 				intent.putExtra("currentPage", (Serializable) currentPage);
@@ -210,6 +217,7 @@ public class PageActivity extends MainActivity {
 	 * "Deleted" TextView should be shown
 	 */
 	private void refresh() {
+		super.hideMenu();
 		if (this.currentPage == null) {
 			return;
 		}
@@ -227,7 +235,7 @@ public class PageActivity extends MainActivity {
 		rightFooter = (ImageView) findViewById(R.id.page_footer_right);
 
 		if (book.isCurrentPageFirstPage()) {
-			leftFooter.setVisibility(View.INVISIBLE);
+			changeLeftFooterToBack();
 			Log.d("", "Current page is first page");
 		} else {
 			leftFooter.setVisibility(View.VISIBLE);
@@ -248,6 +256,23 @@ public class PageActivity extends MainActivity {
 		Bitmap bm = currentPage.getBitmapImage();
 		image = (ImageView) findViewById(R.id.page_image);
 		image.setImageBitmap(bm);
+	}
+
+	private void changeLeftFooterToBack() {
+		ImageView back = (ImageView) findViewById(R.id.page_footer_left);
+		back.setImageResource(R.drawable.back);
+		addBackListener();
+	}
+
+	private void addBackListener() {
+		ImageView back = (ImageView) findViewById(R.id.page_footer_left);
+		back.setClickable(true);
+		back.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				goToLandingPage();
+			}
+		});
 	}
 
 	@Override
@@ -323,12 +348,21 @@ public class PageActivity extends MainActivity {
 		case PAGE_ACTIVITY_NEW_PHOTO:
 			currentPage = book.goToLastPage();
 			refresh();
-			addAllButtonListeners();
+			addHeaderButtonListeners();
 			break;
 		case PAGE_ACTIVITY_DEFAULT:
 		default:
 			break;
 
 		}
+		super.hideMenu();
 	}
+
+	@Override
+	public void onBackPressed() {
+		// Back is pressed, go to landing page
+		finish();
+		goToLandingPage();
+	}
+
 }

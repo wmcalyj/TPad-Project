@@ -19,6 +19,7 @@ import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.hapticebook.LandingActivity;
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.PageActivity;
 import com.example.hapticebook.R;
@@ -121,7 +122,7 @@ public class NewPageActivity extends MainActivity {
 				saveAction();
 
 			} else if (resultCode == RESULT_CANCELED) {
-				// User cancelled the image capture
+				// User cancelled the image capture (back is pressed)
 				cancelAction();
 			} else {
 				// Image capture failed, advise user
@@ -202,8 +203,13 @@ public class NewPageActivity extends MainActivity {
 	}
 
 	public void cancelAction() {
-		Intent intent = new Intent(NewPageActivity.this, PageActivity.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		this.finish();
+		Intent intent;
+		if (super.getMBook().isEmpty()) {
+			intent = new Intent(NewPageActivity.this, LandingActivity.class);
+		} else {
+			intent = new Intent(NewPageActivity.this, PageActivity.class);
+		}
 		startActivity(intent);
 	}
 

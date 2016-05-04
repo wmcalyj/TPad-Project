@@ -188,6 +188,9 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public MediaPlayer startPlayingAudio() {
+		if (mRecordFile == null || !mRecordFile.exists()) {
+			return null;
+		}
 
 		MediaPlayer mPlayer = new MediaPlayer();
 		try {

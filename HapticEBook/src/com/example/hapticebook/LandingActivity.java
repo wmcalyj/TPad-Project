@@ -18,6 +18,7 @@ public class LandingActivity extends MainActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.landing);
 		addFooterListener();
+		super.hideMenu();
 	}
 
 	@Override
@@ -80,5 +81,18 @@ public class LandingActivity extends MainActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onBackPressed() {
+		// Back is pressed, go to landing page
+		finish();
+		super.onBackPressed();
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		super.hideMenu();
 	}
 }

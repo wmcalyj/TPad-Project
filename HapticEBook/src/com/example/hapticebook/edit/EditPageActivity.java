@@ -1,5 +1,7 @@
 package com.example.hapticebook.edit;
 
+import java.io.Serializable;
+
 import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -16,11 +18,13 @@ import android.widget.Toast;
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.PageActivity;
 import com.example.hapticebook.R;
-import com.example.hapticebook.data.book.impl.PageImpl;
+import com.example.hapticebook.data.book.Page;
+import com.example.hapticebook.log.Action;
+import com.example.hapticebook.log.LogService;
 
 public class EditPageActivity extends MainActivity {
 
-	PageImpl currentPage;
+	Page currentPage;
 	ImageView image;
 	private MediaRecorder mRecorder;
 	private MediaPlayer player;
@@ -38,6 +42,7 @@ public class EditPageActivity extends MainActivity {
 		setImage();
 
 		addAllButtonListerners();
+		super.hideMenu();
 
 	}
 
@@ -47,20 +52,32 @@ public class EditPageActivity extends MainActivity {
 		addPlayButtonListener();
 		addSaveButtonListener();
 		addCancelButtonListener();
+		addAnnotateButtonListener();
 
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		super.hideMenu();
 	}
 
 	private void setImage() {
 
-		LinearLayout toolSet = (LinearLayout) findViewById(R.id.tool_set);
-		RelativeLayout editPage = (RelativeLayout) findViewById(R.id.edit_page);
-		editPage.bringChildToFront(toolSet);
-		this.currentPage = (PageImpl) getIntent().getSerializableExtra(
+		this.currentPage = (Page) getIntent().getSerializableExtra(
 				"currentPage");
 
 		if (currentPage != null) {
 			image = (ImageView) findViewById(R.id.edit_image);
-			image.setImageBitmap(currentPage.getmImage().getImage());
+			image.setImageBitmap(currentPage.getBitmapImage());
+
+			LinearLayout toolSet = (LinearLayout) findViewById(R.id.tool_set);
+			RelativeLayout editPage = (RelativeLayout) findViewById(R.id.edit_page);
+			editPage.bringChildToFront(toolSet);
+			ImageView cancel = (ImageView) findViewById(R.id.edit_tool_cancel);
+			cancel.bringToFront();
+			((View) cancel.getParent()).requestLayout();
+			((View) cancel).invalidate();
 		} else {
 			Log.d("", "currentPage is null");
 		}
@@ -79,10 +96,11 @@ public class EditPageActivity extends MainActivity {
 					// It's currently on, on click should close
 					((ImageView) v).setImageResource(R.drawable.record);
 					currentPage.stopRecording(mRecorder);
+					LogService.WriteToLog(Action.RECORD_AUDIO_EDIT_STOP);
 					recordOn = false;
 				} else {
 					// It's current off, on click should start recording
-
+					LogService.WriteToLog(Action.RECORD_AUDIO_EDIT_START);
 					mRecorder = currentPage.startRecording();
 					if (mRecorder != null) {
 						((ImageView) v).setImageResource(R.drawable.record_red);
@@ -111,25 +129,35 @@ public class EditPageActivity extends MainActivity {
 			public void onClick(final View v) {
 				if (playOn) {
 					// Audio is on, turn off
+					LogService.WriteToLog(Action.PLAY_AUDIO_EDIT_STOP);
 					currentPage.stopPlayingAudio(player);
 					((ImageView) v).setImageResource(R.drawable.audio);
 					playOn = false;
 				} else {
 					// Audio is off, turn on
-
-					((ImageView) v).setImageResource(R.drawable.audio_blue);
-					playOn = true;
+					LogService.WriteToLog(Action.PLAY_AUDIO_EDIT_START);
 					player = currentPage.startPlayingAudio();
-					player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+					if (player == null) {
+						// No recording file
+						Toast.makeText(context,
+								"Please record an audio before playing it",
+								Toast.LENGTH_LONG).show();
 
-						@Override
-						public void onCompletion(MediaPlayer mp) {
-							currentPage.stopPlayingAudio(mp);
-							((ImageView) v).setImageResource(R.drawable.audio);
-							playOn = false;
+					} else {
+						((ImageView) v).setImageResource(R.drawable.audio_blue);
+						playOn = true;
+						player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
-						}
-					});
+							@Override
+							public void onCompletion(MediaPlayer mp) {
+								currentPage.stopPlayingAudio(mp);
+								((ImageView) v)
+										.setImageResource(R.drawable.audio);
+								playOn = false;
+
+							}
+						});
+					}
 				}
 			}
 		});
@@ -145,6 +173,7 @@ public class EditPageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				currentPage.getRecordFile().delete();
+				LogService.WriteToLog(Action.CANCEL_EDIT);
 				Intent intent = new Intent(EditPageActivity.this,
 						PageActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -162,11 +191,29 @@ public class EditPageActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
+				LogService.WriteToLog(Action.SAVE_EDIT);
 				Intent intent = new Intent(EditPageActivity.this,
 						PageActivity.class);
 				// Bundle b = new Bundle();
 				// b.putInt(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+			}
+		});
+	}
+
+	private void addAnnotateButtonListener() {
+		ImageView edit = (ImageView) findViewById(R.id.edit_tool_paint);
+
+		edit.setClickable(true);
+		edit.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(EditPageActivity.this,
+						FilterActivity.class);
+				intent.putExtra("currentPage", (Serializable) currentPage);
+				// intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				startActivity(intent);
 			}
 		});
