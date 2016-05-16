@@ -40,6 +40,12 @@ public class PageImage implements Serializable {
 		} else {
 			out.writeInt(NO_IMAGE);
 		}
+		// if (image != null) {
+		// image.compress(Bitmap.CompressFormat.PNG, 100, out);
+		// final byte[] imageByteArray = stream.toByteArray();
+		// out.writeInt(imageByteArray.length);
+		// out.write(imageByteArray);
+		// }
 	}
 
 	private void readObject(ObjectInputStream in) throws IOException,

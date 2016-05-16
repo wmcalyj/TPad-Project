@@ -10,6 +10,9 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 
+import com.example.hapticebook.data.book.Book;
+import com.example.hapticebook.data.book.impl.BookImpl;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,11 +20,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-
-import com.example.hapticebook.data.book.Book;
-import com.example.hapticebook.data.book.impl.BookImpl;
-import com.example.hapticebook.log.Action;
-import com.example.hapticebook.log.LogService;
 
 public class MainActivity extends Activity {
 
@@ -42,6 +40,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		hideMenu();
 		// setContentView(R.layout.landing);
 		if (mBook == null) {
 			mBook = loadBook();
@@ -53,10 +52,10 @@ public class MainActivity extends Activity {
 		View decorView = getWindow().getDecorView();
 		// Hide the status bar.
 
-		decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-				| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-				| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-				| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+		decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+				| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide
+																								// nav
+																								// bar
 				| View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
 				| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
@@ -97,8 +96,8 @@ public class MainActivity extends Activity {
 		String filename = FILE_NAME;
 
 		try {
-			input = new ObjectInputStream(new FileInputStream(new File(
-					new File(getFilesDir(), "") + File.separator + filename)));
+			input = new ObjectInputStream(
+					new FileInputStream(new File(new File(getFilesDir(), "") + File.separator + filename)));
 			mBook = (Book) input.readObject();
 			if (mBook.isEmpty()) {
 				Log.d("", "Book is empty");
@@ -134,9 +133,7 @@ public class MainActivity extends Activity {
 				}
 			}
 		}
-		Toast.makeText(this,
-				"Book load from:\n" + mBook.getFilePath().getAbsolutePath(),
-				Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Book load from:\n" + mBook.getFilePath().getAbsolutePath(), Toast.LENGTH_LONG).show();
 		return mBook;
 	}
 
@@ -145,8 +142,8 @@ public class MainActivity extends Activity {
 		ObjectOutput out = null;
 
 		try {
-			out = new ObjectOutputStream(new FileOutputStream(new File(
-					getFilesDir(), "") + File.separator + FILE_NAME));
+			out = new ObjectOutputStream(
+					new FileOutputStream(new File(getFilesDir(), "") + File.separator + FILE_NAME));
 			out.writeObject(mBook);
 			out.close();
 		} catch (FileNotFoundException e) {
@@ -170,7 +167,7 @@ public class MainActivity extends Activity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		LogService.WriteToLog(Action.CLOSE);
-		LogService.StopWriting();
+		// LogService.WriteToLog(Action.CLOSE, "Quit App");
+		// LogService.StopWriting();
 	}
 }

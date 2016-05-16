@@ -40,16 +40,16 @@
         </activity>
         <activity android:name=".PageActivity" >
         </activity>
-        <activity
-            android:name="com.example.hapticebook.newpage.NewPageActivity"
-            android:screenOrientation="portrait" >
-        </activity>
         <activity android:name="com.example.hapticebook.edit.EditPageActivity" >
         </activity>
-        <activity android:name=".EditActivity" >
+        <activity
+            android:name=".EditActivity"
+            android:noHistory="true" >
         </activity>
         <activity android:name="com.example.hapticebook.edit.AnnotateActivity" />
-        <activity android:name="com.example.hapticebook.edit.FilterActivity" />
+        <activity
+            android:name="com.example.hapticebook.edit.FilterActivity"
+            android:noHistory="true" />
     </application>
 
 </manifest>

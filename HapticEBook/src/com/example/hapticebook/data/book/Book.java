@@ -2,6 +2,8 @@ package com.example.hapticebook.data.book;
 
 import java.io.File;
 
+import android.net.Uri;
+
 public interface Book {
 
 	public Page goToFirstPage();
@@ -16,15 +18,11 @@ public interface Book {
 
 	public boolean saveBook();
 
-	public boolean loadBook();
-
 	public void addNewPage(Page newPage);
 
 	public void deleteCurrentPage();
 
 	public Page getCurrentPage();
-
-	public Page createNewPage();
 
 	public boolean isCurrentPageFirstPage();
 
@@ -43,4 +41,14 @@ public interface Book {
 	boolean isTeacherMode();
 
 	boolean isStudentMode();
+
+	boolean isCompressed();
+
+	int getCompressionRate();
+
+	public void setCompressionRate(int compressionRate);
+
+	public Page createNewPage(Uri fileUri);
+
+	Page createNewPage(String filePath);
 }

@@ -1,12 +1,10 @@
 package com.example.hapticebook.data.book;
 
-import java.io.File;
+import com.example.hapticebook.data.HapticFilterEnum;
 
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-
-import com.example.hapticebook.data.book.impl.PageImage;
 
 // This is the interface for Page object
 public interface Page {
@@ -65,32 +63,6 @@ public interface Page {
 
 	/**
 	 * 
-	 * @param image
-	 *            the image attached to the current page
-	 */
-	public void setImage(Bitmap image);
-
-	/**
-	 * 
-	 * @param pageImage
-	 *            the image attached to the current page
-	 */
-	public void setImage(PageImage pageImage);
-
-	/**
-	 * 
-	 * @return image attached to the page as <code>PageImage</code>
-	 */
-	public PageImage getImage();
-
-	/**
-	 * 
-	 * @return image attached to the page as <code>Bitmap</code>
-	 */
-	public Bitmap getBitmapImage();
-
-	/**
-	 * 
 	 * @return true if there is an audio attached to the current page,
 	 *         otherwise, return false
 	 */
@@ -122,6 +94,28 @@ public interface Page {
 
 	void stopRecording(MediaRecorder mRecorder);
 
-	public File getRecordFile();
+	public Bitmap getImageBitmap();
+
+	HapticFilterEnum getHapticFilter();
+
+	void setHapticFilter(HapticFilterEnum hapticFilter);
+
+	void saveAudioFile();
+
+	void cancelAudioFile();
+
+	@Override
+	boolean equals(Object object);
+
+	@Override
+	int hashCode();
+
+	void saveHapticFilter(String filterFilePath);
+
+	void cancelHapticFilter();
+
+	public String getImageFilePath();
+
+	String getFilterImagePath();
 
 }

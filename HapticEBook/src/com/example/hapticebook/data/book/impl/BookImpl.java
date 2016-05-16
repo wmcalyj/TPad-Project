@@ -8,11 +8,12 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import android.util.Log;
-
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
+
+import android.net.Uri;
+import android.util.Log;
 
 public class BookImpl extends MainActivity implements Serializable, Book {
 
@@ -23,6 +24,9 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	private Page headerAvailable;
 	private Page tailAvailable;
 	private Page current;
+
+	// This is a int value used to indicate if the image should be compressed
+	private int compressionRate = 100;
 
 	// Default mode is student (deleted pages not included)
 	private boolean includeDeleted = false;
@@ -95,8 +99,7 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 		ObjectOutput out = null;
 
 		try {
-			out = new ObjectOutputStream(new FileOutputStream(new File(
-					filePath, "") + File.separator + FILE_NAME));
+			out = new ObjectOutputStream(new FileOutputStream(new File(filePath, "") + File.separator + FILE_NAME));
 			out.writeObject(this);
 			out.close();
 		} catch (FileNotFoundException e) {
@@ -111,12 +114,6 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 			this.includeDeleted = originalMode;
 		}
 		return true;
-	}
-
-	@Override
-	public boolean loadBook() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	@Override
@@ -166,17 +163,16 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 		// There is no previous available page and there is no next available
 		// page, the current page is also NOT available. Then, we know the book
 		// is empty
-				(this.current.getPrevPage(includeDeleted) == null
-						&& this.current.getNextPage(includeDeleted) == null && !this.current
-							.isAvailable())) {
+				(this.current.getPrevPage(includeDeleted) == null && this.current.getNextPage(includeDeleted) == null
+						&& !this.current.isAvailable())) {
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public Page createNewPage() {
-		Page newPage = new PageImpl(mFilePath.getAbsolutePath());
+	public Page createNewPage(String filePath) {
+		Page newPage = new PageImpl(filePath);
 		return newPage;
 	}
 
@@ -259,5 +255,43 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	@Override
 	public boolean isStudentMode() {
 		return this.includeDeleted == false;
+	}
+
+	@Override
+	public boolean isCompressed() {
+		return this.compressionRate == 100 ? true : false;
+	}
+
+	@Override
+	public int getCompressionRate() {
+		return this.compressionRate;
+	}
+
+	@Override
+	public void setCompressionRate(int compressionRate) {
+		if (compressionRate > 100) {
+			compressionRate = 100;
+		}
+		if (compressionRate < 0) {
+			compressionRate = 0;
+		}
+		this.compressionRate = compressionRate;
+	}
+
+	protected Page findPage(Page page) {
+		if (page != null && headerAvailable != null) {
+			Page tmp = headerAvailable;
+			while (tmp != null && !page.equals(tmp)) {
+				tmp = tmp.getNextPage(false);
+			}
+			return tmp;
+		}
+		return null;
+	}
+
+	@Override
+	public Page createNewPage(Uri fileUri) {
+		Page newPage = new PageImpl(fileUri.getPath());
+		return newPage;
 	}
 }

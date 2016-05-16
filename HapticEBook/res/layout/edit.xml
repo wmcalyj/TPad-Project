@@ -9,6 +9,24 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.hapticebook.EditActivity" >
 
+    <FrameLayout
+        android:id="@+id/edit_image_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <nxr.tpad.lib.views.FrictionMapView
+            android:id="@+id/edit_feel_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/edit_feel_image" />
+
+        <ImageView
+            android:id="@+id/edit_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/page_image" />
+    </FrameLayout>
+
     <!--
     The layout_height should be changed to wrap_content in the future (I think)
     if we the icons are all in the same size
@@ -78,11 +96,5 @@
         android:maxHeight="60dp"
         android:maxWidth="60dp"
         android:src="@drawable/cancel" />
-
-    <ImageView
-        android:id="@+id/edit_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@string/page_image" />
 
 </RelativeLayout>

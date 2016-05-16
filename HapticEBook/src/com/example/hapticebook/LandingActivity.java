@@ -9,8 +9,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 
-import com.example.hapticebook.newpage.NewPageActivity;
-
 public class LandingActivity extends MainActivity {
 
 	@Override
@@ -62,14 +60,13 @@ public class LandingActivity extends MainActivity {
 				// If there are available pages, go to the first page
 				// Otherwise, go to new page
 				Intent intent;
-				if (isBookEmpty()) {
-					intent = new Intent(LandingActivity.this,
-							NewPageActivity.class);
-					Log.d("", "Book is empty");
-				} else {
-					intent = new Intent(LandingActivity.this,
-							PageActivity.class);
-				}
+				// if (isBookEmpty()) {
+				// intent = new Intent(LandingActivity.this,
+				// NewPageActivity.class);
+				// Log.d("", "Book is empty");
+				// } else {
+				intent = new Intent(LandingActivity.this, PageActivity.class);
+				// }
 				startActivity(intent);
 			}
 		});

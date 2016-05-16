@@ -32,6 +32,10 @@
     <string name="annotate_cancel">Annotate cancel</string>
     <string name="filter_save">Filter save</string>
     <string name="filter_cancel">Filter cancel</string>
-    <string name="filter_image">Filter image</string>
+    <string name="filter_image">Filter image used as input for haptic</string>
+    <string name="filter_next">Filter next</string>
+    <string name="filter_prev">Filter previous</string>
+    <string name="filter_shown_image">Filter image shown to others</string>
+    <string name="edit_feel_image">haptic image view on edit page</string>
 
 </resources>
