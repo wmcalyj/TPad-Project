@@ -5,6 +5,7 @@ import java.io.Serializable;
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.PageActivity;
 import com.example.hapticebook.R;
+import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.data.HapticFilterEnum;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.log.Action;
@@ -44,8 +45,6 @@ public class EditPageActivity extends MainActivity {
 
 	private Context context;
 
-	private boolean debug = true;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -70,7 +69,7 @@ public class EditPageActivity extends MainActivity {
 				return;
 			}
 			tpadView.setDataBitmap(filterBmp);
-			if (debug) {
+			if (Configuration.DEBUG) {
 				image.setImageBitmap(filterBmp);
 			}
 			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
@@ -270,7 +269,7 @@ public class EditPageActivity extends MainActivity {
 				.getStringExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath");
 		if (chosenFilterFilePath != null) {
 			tpadView.setDataBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
-			if (debug) {
+			if (Configuration.DEBUG) {
 				image.setImageBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
 			}
 			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);

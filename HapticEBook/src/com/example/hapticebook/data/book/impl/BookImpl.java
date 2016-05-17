@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import com.example.hapticebook.MainActivity;
+import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
 
@@ -26,7 +27,7 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	private Page current;
 
 	// This is a int value used to indicate if the image should be compressed
-	private int compressionRate = 100;
+	private int compressionRate = Configuration.COMPRESSIONRATE;
 
 	// Default mode is student (deleted pages not included)
 	private boolean includeDeleted = false;
@@ -265,17 +266,6 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	@Override
 	public int getCompressionRate() {
 		return this.compressionRate;
-	}
-
-	@Override
-	public void setCompressionRate(int compressionRate) {
-		if (compressionRate > 100) {
-			compressionRate = 100;
-		}
-		if (compressionRate < 0) {
-			compressionRate = 0;
-		}
-		this.compressionRate = compressionRate;
 	}
 
 	protected Page findPage(Page page) {

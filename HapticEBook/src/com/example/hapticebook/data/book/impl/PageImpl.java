@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.data.HapticFilterEnum;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.log.Action;
@@ -16,7 +17,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Environment;
 import android.util.Log;
 
 public class PageImpl implements Serializable, Page {
@@ -51,11 +51,12 @@ public class PageImpl implements Serializable, Page {
 
 	private final UUID ID;
 
-	private static final String root = Environment.getExternalStorageDirectory().toString() + "/hapticEBook/";
+	private static final String root = Configuration.ROOT_PATH + "/hapticEBook/";
 	private static final File dir = new File(root, "recordings");
 
 	private static Bitmap imageBmp;
 
+	@SuppressWarnings("unused")
 	private PageImpl() {
 		// Do nothing but set UUID, do not call Page
 		ID = UUID.randomUUID();
@@ -207,7 +208,6 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public boolean isAudioAvailable() {
-		// TODO Auto-generated method stub
 		if (mRecordFile == null || !mRecordFile.exists()) {
 			return false;
 		}

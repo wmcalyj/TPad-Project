@@ -10,6 +10,7 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 
+import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.crash.CustomExceptionHandler;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.impl.BookImpl;
@@ -18,7 +19,6 @@ import com.example.hapticebook.log.LogService;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -101,7 +101,7 @@ public class MainActivity extends Activity {
 	private Book loadBook() {
 		ObjectInputStream input;
 		String filename = FILE_NAME;
-		String root = Environment.getExternalStorageDirectory().toString();
+		String root = Configuration.ROOT_PATH;
 		File dir = new File(root, "hapticEBook/");
 		if (!dir.exists()) {
 			dir.mkdirs();

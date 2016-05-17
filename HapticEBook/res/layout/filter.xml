@@ -1,0 +1,90 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/filter_page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.example.hapticebook.FilterActivity" >
+
+    <FrameLayout
+        android:id="@+id/filter_image_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <nxr.tpad.lib.views.FrictionMapView
+            android:id="@+id/filter_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/filter_image" />
+
+        <ImageView
+            android:id="@+id/filter_shown_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/filter_shown_image" />
+    </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/tool_set"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#80999999"
+        android:orientation="horizontal" >
+
+        <ImageView
+            android:id="@+id/filter_prev"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/filter_prev"
+            android:maxHeight="60dp"
+            android:src="@drawable/arrow_left" >
+        </ImageView>
+
+        <TextView
+            android:id="@+id/filter_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textSize="50sp" />
+
+        <ImageView
+            android:id="@+id/filter_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/filter_next"
+            android:maxHeight="60dp"
+            android:src="@drawable/arrow_right" />
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/filter_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/filter_save"
+        android:maxHeight="60dp"
+        android:maxWidth="60dp"
+        android:src="@drawable/check_save_blue" />
+
+    <ImageView
+        android:id="@+id/filter_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/filter_cancel"
+        android:maxHeight="60dp"
+        android:maxWidth="60dp"
+        android:src="@drawable/cancel" />
+
+</RelativeLayout>

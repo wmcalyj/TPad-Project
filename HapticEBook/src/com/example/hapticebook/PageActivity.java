@@ -9,19 +9,18 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.edit.EditPageActivity;
 import com.example.hapticebook.log.Action;
 import com.example.hapticebook.log.LogService;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
@@ -36,7 +35,7 @@ import android.widget.TextView;
 
 public class PageActivity extends MainActivity {
 
-	private static final String root = Environment.getExternalStorageDirectory().toString() + "/hapticEBook/";
+	private static final String root = Configuration.ROOT_PATH + "/hapticEBook/";
 	private static final File dir = new File(root);
 
 	private ImageView image;
@@ -54,11 +53,9 @@ public class PageActivity extends MainActivity {
 	public static final int MEDIA_TYPE_IMAGE = 1;
 
 	private Bitmap imageTaken;
-	private Context context;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		context = this;
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.page);
 		if (!dir.exists()) {
@@ -310,24 +307,7 @@ public class PageActivity extends MainActivity {
 		// Uri imageUri = currentPage.getImageUri();
 		Bitmap imageBmp = currentPage.getImageBitmap();
 		image = (ImageView) findViewById(R.id.page_image);
-		// image.setImageURI(imageUri);
 		image.setImageBitmap(imageBmp);
-
-		// This is for testing purpose, should delete it when release
-		// TODO
-		// image.setLongClickable(true);
-		// image.setOnLongClickListener(new OnLongClickListener() {
-		//
-		// @Override
-		// public boolean onLongClick(View v) {
-		// // TODO Auto-generated method stub
-		// String imageUri = currentPage.getImageUri().toString();
-		// Toast toast = Toast.makeText(context, imageUri, Toast.LENGTH_LONG);
-		// toast.show();
-		// return true;
-		// }
-		// });
-
 	}
 
 	private void changeLeftFooterToBack() {

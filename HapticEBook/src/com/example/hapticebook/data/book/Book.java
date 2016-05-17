@@ -46,8 +46,6 @@ public interface Book {
 
 	int getCompressionRate();
 
-	public void setCompressionRate(int compressionRate);
-
 	public Page createNewPage(Uri fileUri);
 
 	Page createNewPage(String filePath);
