@@ -2,7 +2,6 @@ package com.example.hapticebook;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,7 +15,20 @@ public class LandingActivity extends MainActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.landing);
 		addFooterListener();
+		addExitListener();
 		super.hideMenu();
+	}
+
+	private void addExitListener() {
+		ImageView exit = (ImageView) findViewById(R.id.landing_exit);
+		exit.setClickable(true);
+		exit.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				finishAffinity();
+			}
+		});
+
 	}
 
 	@Override
@@ -56,17 +68,8 @@ public class LandingActivity extends MainActivity {
 		footer.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Log.d("", "footer clicked");
-				// If there are available pages, go to the first page
-				// Otherwise, go to new page
 				Intent intent;
-				// if (isBookEmpty()) {
-				// intent = new Intent(LandingActivity.this,
-				// NewPageActivity.class);
-				// Log.d("", "Book is empty");
-				// } else {
 				intent = new Intent(LandingActivity.this, PageActivity.class);
-				// }
 				startActivity(intent);
 			}
 		});
@@ -82,9 +85,7 @@ public class LandingActivity extends MainActivity {
 
 	@Override
 	public void onBackPressed() {
-		// Back is pressed, go to landing page
-		finish();
-		super.onBackPressed();
+		finishAffinity();
 	}
 
 	@Override

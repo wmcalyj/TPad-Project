@@ -10,11 +10,15 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 
+import com.example.hapticebook.crash.CustomExceptionHandler;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.impl.BookImpl;
+import com.example.hapticebook.log.Action;
+import com.example.hapticebook.log.LogService;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,6 +43,9 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		if (!(CustomExceptionHandler.class.isAssignableFrom(Thread.getDefaultUncaughtExceptionHandler().getClass()))) {
+			Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler());
+		}
 		super.onCreate(savedInstanceState);
 		hideMenu();
 		// setContentView(R.layout.landing);
@@ -94,43 +101,35 @@ public class MainActivity extends Activity {
 	private Book loadBook() {
 		ObjectInputStream input;
 		String filename = FILE_NAME;
-
-		try {
-			input = new ObjectInputStream(
-					new FileInputStream(new File(new File(getFilesDir(), "") + File.separator + filename)));
-			mBook = (Book) input.readObject();
-			if (mBook.isEmpty()) {
-				Log.d("", "Book is empty");
-			}
-
-			input.close();
-		} catch (StreamCorruptedException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} finally {
-			if (mBook == null) {
-				mBook = new BookImpl();
-				File dir = getFilesDir();
-				if (dir != null) {
-					mBook.setFilePath(dir);
-					mBook.saveBook(dir);
-				} else {
-					Log.d("", "File dir is null");
+		String root = Environment.getExternalStorageDirectory().toString();
+		File dir = new File(root, "hapticEBook/");
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		File book = new File(dir, filename);
+		if (!book.exists()) {
+			// First time open this app
+			mBook = new BookImpl();
+			mBook.setFilePath(dir);
+			mBook.saveBook();
+		} else {
+			try {
+				input = new ObjectInputStream(new FileInputStream(new File(dir, filename)));
+				mBook = (Book) input.readObject();
+				if (mBook.isEmpty()) {
+					Log.d("", "Book is empty");
 				}
-			} else {
-				File dir = getFilesDir();
-				if (dir != null) {
-					mBook.setFilePath(dir);
-					mBook.saveBook();
-				} else {
-					Log.d("", "File dir is null");
-				}
+
+				input.close();
+			} catch (StreamCorruptedException e) {
+				e.printStackTrace();
+			} catch (FileNotFoundException e) {
+
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
 			}
 		}
 		Toast.makeText(this, "Book load from:\n" + mBook.getFilePath().getAbsolutePath(), Toast.LENGTH_LONG).show();
@@ -167,7 +166,17 @@ public class MainActivity extends Activity {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		// LogService.WriteToLog(Action.CLOSE, "Quit App");
-		// LogService.StopWriting();
+		if (getClass().isAssignableFrom(MainActivity.class)) {
+			Log.i("QUIT", "Quit app");
+			LogService.WriteToLog(Action.CLOSE, "Quit App");
+		} else {
+			Log.i("QUIT", "Calling from " + getClass().getName());
+		}
+	}
+
+	@Override
+	public void finishAffinity() {
+		LogService.WriteToLog(Action.CLOSE, "Exit app");
+		super.finishAffinity();
 	}
 }

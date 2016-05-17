@@ -54,6 +54,8 @@ public class PageImpl implements Serializable, Page {
 	private static final String root = Environment.getExternalStorageDirectory().toString() + "/hapticEBook/";
 	private static final File dir = new File(root, "recordings");
 
+	private static Bitmap imageBmp;
+
 	private PageImpl() {
 		// Do nothing but set UUID, do not call Page
 		ID = UUID.randomUUID();
@@ -81,6 +83,10 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public Page getNextPage(boolean includeDeleted) {
+		if (imageBmp != null) {
+			imageBmp.recycle();
+			imageBmp = null;
+		}
 		if (nextAvailablePage != null) {
 			String fileName;
 			fileName = nextAvailablePage.getImageFilePath();
@@ -97,6 +103,10 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public Page getPrevPage(boolean includeDeleted) {
+		if (imageBmp != null) {
+			imageBmp.recycle();
+			imageBmp = null;
+		}
 		if (prevAvailablePage != null) {
 			String fileName;
 			fileName = prevAvailablePage.getImageFilePath();
@@ -162,9 +172,9 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public MediaRecorder startRecording() {
-		LogService.WriteToLog(Action.RECORD_AUDIO, "Start recording audio in file - " + mRecordFile.getAbsolutePath());
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 		mRecordFile = new File(dir, timeStamp + ".m4a");
+		LogService.WriteToLog(Action.RECORD_AUDIO, "Start recording audio in file - " + mRecordFile.getAbsolutePath());
 		MediaRecorder mRecorder = new MediaRecorder();
 		mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 		mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -259,11 +269,12 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public Bitmap getImageBitmap() {
-		BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
-		bmpFactoryOptions.inSampleSize = 2;
-		Bitmap image;
-		image = BitmapFactory.decodeFile(imagePath, bmpFactoryOptions);
-		return image;
+		if (imageBmp == null) {
+			BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
+			bmpFactoryOptions.inSampleSize = 2;
+			imageBmp = BitmapFactory.decodeFile(imagePath, bmpFactoryOptions);
+		}
+		return imageBmp;
 	}
 
 	@Override
@@ -276,6 +287,9 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public void cancelAudioFile() {
+		if (mRecordFile == null || !mRecordFile.exists()) {
+			return;
+		}
 		LogService.WriteToLog(Action.CANCEL_AUDIO_SAVE, "Cancel to save audio file " + mRecordFile.getAbsolutePath());
 		if (lastSavedRecordFilePath == null || lastSavedRecordFilePath.isEmpty()) {
 			// No recording ever exists, set record file to null

@@ -12,6 +12,7 @@ import com.example.hapticebook.log.LogService;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -36,6 +37,8 @@ public class EditPageActivity extends MainActivity {
 	boolean playOn = false;
 
 	String chosenFilterFilePath;
+
+	Bitmap filterBmp;
 
 	TPad mTpad;
 
@@ -62,9 +65,13 @@ public class EditPageActivity extends MainActivity {
 	private void applyFilter() {
 		chosenFilterFilePath = currentPage.getFilterImagePath();
 		if (chosenFilterFilePath != null) {
-			tpadView.setDataBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
+			filterBmp = BitmapFactory.decodeFile(chosenFilterFilePath);
+			if (filterBmp == null) {
+				return;
+			}
+			tpadView.setDataBitmap(filterBmp);
 			if (debug) {
-				image.setImageBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
+				image.setImageBitmap(filterBmp);
 			}
 			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
 			feel.setImageResource(R.drawable.touch_orange);
@@ -96,8 +103,8 @@ public class EditPageActivity extends MainActivity {
 
 	@Override
 	public void onResume() {
-		super.onResume();
 		super.hideMenu();
+		super.onResume();
 	}
 
 	private void setImage() {
@@ -259,7 +266,8 @@ public class EditPageActivity extends MainActivity {
 	public void onNewIntent(Intent intent) {
 		if (intent != null)
 			setIntent(intent);
-		chosenFilterFilePath = intent.getStringExtra("ChosenFilterFilePath");
+		chosenFilterFilePath = intent
+				.getStringExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath");
 		if (chosenFilterFilePath != null) {
 			tpadView.setDataBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
 			if (debug) {
@@ -273,5 +281,35 @@ public class EditPageActivity extends MainActivity {
 			mTpad.turnOff();
 			image.setImageBitmap(currentPage.getImageBitmap());
 		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		// Back is pressed, go to page activity page
+		finish();
+		goToPageActivity();
+	}
+
+	private void goToPageActivity() {
+		Intent intent = new Intent(EditPageActivity.this, PageActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		startActivity(intent);
+	}
+
+	@Override
+	public void onDestroy() {
+		if (filterBmp != null) {
+			filterBmp.recycle();
+		}
+		mTpad.disconnectTPad();
+		super.onDestroy();
+	}
+
+	@Override
+	public void onPause() {
+		if (filterBmp != null) {
+			filterBmp.recycle();
+		}
+		super.onPause();
 	}
 }

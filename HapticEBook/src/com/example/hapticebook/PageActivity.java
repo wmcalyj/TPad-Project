@@ -460,30 +460,26 @@ public class PageActivity extends MainActivity {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				// Image captured and saved to fileUri specified in the Intent
-				// Toast.makeText(this, "Image saved to:\n" + data.getData(),
-				// Toast.LENGTH_LONG).show();
-				// imageTaken = (Bitmap) data.getExtras().get("data");
+				// Save new page
 				saveAction();
-				ImageView iv = (ImageView) findViewById(R.id.page_image);
-				iv.setImageBitmap(imageTaken);
+				// Move to last page
+				currentPage = book.goToLastPage();
+				// ImageView iv = (ImageView) findViewById(R.id.page_image);
+				// iv.setImageBitmap(imageTaken);
 				refresh();
 				getIntent().putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
 
 			} else if (resultCode == RESULT_CANCELED) {
 				// User cancelled the image capture (back is pressed)
-				// cancelAction();
-				finish();
+				// Go to the previous page that the user was at
+				refresh();
+
 			} else {
 				// Image capture failed, advise user
-				// cancelAction();
-				finish();
+				// Go to the previous page that the user was at
+				refresh();
 			}
 		}
-	}
-
-	public void cancelAction() {
-		this.finish();
 	}
 
 	public void saveAction() {
