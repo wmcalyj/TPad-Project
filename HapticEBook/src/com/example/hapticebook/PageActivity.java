@@ -5,11 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.example.hapticebook.config.Configuration;
+import com.example.hapticebook.data.HapticFilterEnum;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.edit.EditPageActivity;
@@ -18,6 +18,7 @@ import com.example.hapticebook.log.LogService;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import nxr.tpad.lib.views.FrictionMapView;
 
 public class PageActivity extends MainActivity {
 
@@ -45,6 +47,7 @@ public class PageActivity extends MainActivity {
 	private Page currentPage;
 	private boolean audioOn = false;
 	private MediaPlayer mPlayer;
+	private static final String TAG = "PageActivity";
 
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 
@@ -53,6 +56,10 @@ public class PageActivity extends MainActivity {
 	public static final int MEDIA_TYPE_IMAGE = 1;
 
 	private Bitmap imageTaken;
+	Bitmap filterBmp;
+
+	private FrictionMapView tpadView;
+	// private ProgressBar loading;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +68,9 @@ public class PageActivity extends MainActivity {
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
+		image = (ImageView) findViewById(R.id.page_image);
+		tpadView = (FrictionMapView) findViewById(R.id.page_feel_image);
+		tpadView.setTpad(mTpad);
 		if (this.isBookEmpty()) {
 			// If book is empty, go to camera
 			// create Intent to take a picture and return control to the
@@ -85,15 +95,70 @@ public class PageActivity extends MainActivity {
 				Log.d("", "Page Activity, go to first page");
 			}
 
+			// loading = (ProgressBar) findViewById(R.id.page_loading);
 			// Uri iamgeURI = currentPage.getImageUri();
 			Bitmap imageBmp = currentPage.getImageBitmap();
-			image = (ImageView) findViewById(R.id.page_image);
 			image.setImageBitmap(imageBmp);
+
 		}
 		// Set all buttons, etc
 		refresh();
 		bringHeaderSetToFront();
 		addHeaderButtonListeners();
+		finishLoading();
+	}
+
+	private void setFrictionMapView() {
+		if (filterBmp != null) {
+			filterBmp.recycle();
+		}
+		if (currentPage.getHapticFilter() == null || currentPage.getHapticFilter().equals(HapticFilterEnum.NONE)) {
+			mTpad.turnOff();
+			tpadView.setDataBitmap(super.getEmptyBitmap());
+			return;
+		} else {
+			if (currentPage.isUsingWallPaper()) {
+				filterBmp = setWallPaperFilterBitmap(currentPage.getHapticFilter());
+
+			} else {
+				String chosenFilterFilePath = currentPage.getFilterImagePath();
+				if (chosenFilterFilePath != null) {
+					filterBmp = BitmapFactory.decodeFile(chosenFilterFilePath);
+				}
+			}
+			if (filterBmp == null) {
+				return;
+			}
+			tpadView.setDataBitmap(filterBmp);
+			if (Configuration.DEBUG) {
+				image.setImageBitmap(filterBmp);
+			}
+		}
+	}
+
+	private Bitmap setWallPaperFilterBitmap(HapticFilterEnum filter) {
+		int resId;
+		switch (filter) {
+		case WALLPAPER1:
+			resId = R.drawable.wallpaper1_j;
+			break;
+		case WALLPAPER2:
+			resId = R.drawable.wallpaper2_j;
+			break;
+		case WALLPAPER3:
+			resId = R.drawable.wallpaper3_j;
+			break;
+		default:
+			return null;
+		}
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeResource(getResources(), resId, options);
+		// Calculate inSampleSize
+		options.inSampleSize = calculateInSampleSize(options);
+		// Decode bitmap with inSampleSize set
+		options.inJustDecodeBounds = false;
+		return BitmapFactory.decodeResource(getResources(), resId, options);
 	}
 
 	private void bringHeaderSetToFront() {
@@ -162,6 +227,7 @@ public class PageActivity extends MainActivity {
 		prev.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				// loading.setVisibility(View.VISIBLE);
 				currentPage = book.goToPrevPage();
 				refresh();
 			}
@@ -177,6 +243,7 @@ public class PageActivity extends MainActivity {
 			next.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					// loading.setVisibility(View.VISIBLE);
 					currentPage = book.goToNextPage();
 					refresh();
 				}
@@ -249,7 +316,7 @@ public class PageActivity extends MainActivity {
 				Page currentPage = book.getCurrentPage();
 				LogService.WriteToLog(Action.EDIT, "Edit page - " + currentPage.getImageFilePath());
 				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
-				intent.putExtra("currentPage", (Serializable) currentPage);
+				// intent.putExtra("currentPage", (Serializable) currentPage);
 				startActivity(intent);
 			}
 		});
@@ -286,7 +353,8 @@ public class PageActivity extends MainActivity {
 		rightFooter = (ImageView) findViewById(R.id.page_footer_right);
 
 		if (book.isCurrentPageFirstPage()) {
-			changeLeftFooterToBack();
+			// changeLeftFooterToBack();
+			addBackListener();
 			Log.d("", "Current page is first page");
 		} else {
 			leftFooter.setVisibility(View.VISIBLE);
@@ -307,13 +375,8 @@ public class PageActivity extends MainActivity {
 		// Uri imageUri = currentPage.getImageUri();
 		Bitmap imageBmp = currentPage.getImageBitmap();
 		image = (ImageView) findViewById(R.id.page_image);
+		setFrictionMapView();
 		image.setImageBitmap(imageBmp);
-	}
-
-	private void changeLeftFooterToBack() {
-		ImageView back = (ImageView) findViewById(R.id.page_footer_left);
-		back.setImageResource(R.drawable.back);
-		addBackListener();
 	}
 
 	private void addBackListener() {
@@ -392,6 +455,7 @@ public class PageActivity extends MainActivity {
 
 	@Override
 	protected void onResume() {
+		super.hideMenu();
 		super.onResume();
 		int newPageActivityFlag = getIntent().getIntExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_DEFAULT);
 		switch (newPageActivityFlag) {
@@ -406,7 +470,6 @@ public class PageActivity extends MainActivity {
 			break;
 
 		}
-		super.hideMenu();
 	}
 
 	@Override
@@ -469,6 +532,22 @@ public class PageActivity extends MainActivity {
 			book.addNewPage(newPage);
 			book.saveBook();
 		}
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		if (filterBmp != null) {
+			filterBmp.recycle();
+		}
+	}
+
+	@Override
+	public void onDestroy() {
+		if (filterBmp != null) {
+			filterBmp.recycle();
+		}
+		super.onDestroy();
 	}
 
 }

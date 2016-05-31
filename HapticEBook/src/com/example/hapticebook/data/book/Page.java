@@ -118,4 +118,6 @@ public interface Page {
 
 	String getFilterImagePath();
 
+	public boolean isUsingWallPaper();
+
 }

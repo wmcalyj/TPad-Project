@@ -24,11 +24,13 @@ import com.example.hapticebook.data.book.Page;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import nxr.tpad.lib.TPad;
 import nxr.tpad.lib.TPadImpl;
@@ -50,9 +52,10 @@ public class FilterActivity extends MainActivity {
 	private List<HapticFilterEnum> filters;
 	private TextView textView;
 
-	private Bitmap filter, woodcut, noise, canny;
+	private Bitmap filter;
 	private File filterFile;
 	String filterFilePath;
+	private ProgressBar loading;
 	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
 		@Override
 		public void onManagerConnected(int status) {
@@ -68,6 +71,7 @@ public class FilterActivity extends MainActivity {
 				HapticFilterEnum filterEnum = currentPage.getHapticFilter();
 				if (filterEnum == null) {
 					filter = null;
+					mFrictionMapView.setDataBitmap(getEmptyBitmap());
 					current = 0;
 					mTpad.turnOff();
 				} else {
@@ -105,6 +109,9 @@ public class FilterActivity extends MainActivity {
 		filters.add(HapticFilterEnum.WOODCUT); // Pos 2
 		filters.add(HapticFilterEnum.CANNY); // Pos 3
 		filters.add(HapticFilterEnum.NOISE);// Pos 4
+		filters.add(HapticFilterEnum.WALLPAPER1);
+		filters.add(HapticFilterEnum.WALLPAPER2);
+		filters.add(HapticFilterEnum.WALLPAPER3);
 	}
 
 	@Override
@@ -127,6 +134,9 @@ public class FilterActivity extends MainActivity {
 		getCurrentPageAndImage();
 		filterFilePath = currentPage.getImageFilePath() + "_filter.png";
 		filterFile = new File(filterFilePath);
+		loading = (ProgressBar) findViewById(R.id.filter_loading);
+		finishLoading();
+		loading.bringToFront();
 	}
 
 	private void addToolSet() {
@@ -144,36 +154,7 @@ public class FilterActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
-				if (filterFile != null && filterFile.exists()) {
-					filterFile.delete();
-				}
-				Intent intent = new Intent(FilterActivity.this, EditPageActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				startActivity(intent);
-			}
-		});
-	}
-
-	private void addSaveListener() {
-		ImageView save = (ImageView) findViewById(R.id.filter_save);
-		save.setClickable(true);
-		save.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				currentPage.setHapticFilter(filters.get(current));
-				if (filter != null) {
-					OutputStream outputStream;
-					try {
-						outputStream = new FileOutputStream(filterFile);
-						filter.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-						// picture.recycle();
-						outputStream.flush();
-						outputStream.close();
-					} catch (IOException e) {
-						Log.d("", "Failed to compress and write to filter file: " + e.getMessage());
-					}
-				}
+				MainActivity.disableAfterClick(v);
 				Intent intent = new Intent(FilterActivity.this, EditPageActivity.class);
 				if (filter != null) {
 					intent.putExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath",
@@ -187,6 +168,45 @@ public class FilterActivity extends MainActivity {
 		});
 	}
 
+	private void addSaveListener() {
+		ImageView save = (ImageView) findViewById(R.id.filter_save);
+		save.setClickable(true);
+		save.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// loading.setVisibility(View.VISIBLE);
+				MainActivity.disableAfterClick(v);
+				HapticFilterEnum currentFilter = filters.get(current);
+				currentPage.setHapticFilter(currentFilter);
+				Intent intent = new Intent(FilterActivity.this, EditPageActivity.class);
+				if (filter != null) {
+					if (!currentFilter.isWallPaper()) {
+						OutputStream outputStream;
+						try {
+							outputStream = new FileOutputStream(filterFile);
+							filter.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+							outputStream.flush();
+							outputStream.close();
+						} catch (IOException e) {
+							Log.d("", "Failed to compress and write to filter file: " + e.getMessage());
+						}
+						intent.putExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath",
+								filterFile.getAbsolutePath());
+					} else {
+						intent.removeExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath");
+						intent.putExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterEnum", currentFilter);
+					}
+				} else {
+					intent.removeExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath");
+				}
+
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				startActivity(intent);
+			}
+		});
+	}
+
 	private void addLeftListener() {
 		ImageView left = (ImageView) findViewById(R.id.filter_prev);
 		left.setClickable(true);
@@ -194,8 +214,10 @@ public class FilterActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
-				Log.i(TAG, "view touched");
-				// if (filters != null && filters.size() > 0) {
+				loading.setVisibility(View.VISIBLE);
+				ImageView left = (ImageView) findViewById(R.id.filter_prev);
+				left.setClickable(false);
+				loading.setVisibility(View.VISIBLE);
 				current--;
 				if (current < 0) {
 					current = filters.size() - 1;
@@ -205,17 +227,14 @@ public class FilterActivity extends MainActivity {
 				if (filter != null) {
 					mFrictionMapView.setDataBitmap(filter);
 					if (Configuration.DEBUG) {
-						// mView.setImageBitmap(filters.get(current));
 						mView.setImageBitmap(filter);
 					}
 				} else {
+					mFrictionMapView.setDataBitmap(getEmptyBitmap());
 					mTpad.turnOff();
 				}
-				// filter.recycle();
-				// } else {
-				// Log.d(TAG, "filters is empty");
-				// }
-
+				left.setClickable(true);
+				loading.setVisibility(View.GONE);
 			}
 		});
 	}
@@ -227,8 +246,10 @@ public class FilterActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
-				Log.i(TAG, "view touched");
-				// if (filters != null && filters.size() > 0) {
+				loading.setVisibility(View.VISIBLE);
+				ImageView right = (ImageView) findViewById(R.id.filter_next);
+				right.setClickable(false);
+
 				current++;
 				if (current >= filters.size()) {
 					current = 0;
@@ -245,13 +266,11 @@ public class FilterActivity extends MainActivity {
 						mView.setImageBitmap(filter);
 					}
 				} else {
+					mFrictionMapView.setDataBitmap(getEmptyBitmap());
 					mTpad.turnOff();
 				}
-				// filter.recycle();
-				// } else {
-				// Log.d(TAG, "filters is empty");
-				// }
-
+				right.setClickable(true);
+				loading.setVisibility(View.GONE);
 			}
 		});
 	}
@@ -262,79 +281,71 @@ public class FilterActivity extends MainActivity {
 
 	private void setWoodcutFilterBitmap() {
 		int tempOpt = 41;
-		if (woodcut == null) {
-			if (mGray != null && mRgba != null) {
-				// First, convert src to grey
-				Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGB2GRAY);
-				Imgproc.adaptiveThreshold(mGray, mGray, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY,
-						tempOpt, 0);
-				Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 15);
-				Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 15);
-				Imgproc.cvtColor(mGray, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
-				woodcut = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
-				Utils.matToBitmap(mRgba, woodcut);
+		if (mGray != null && mRgba != null) {
+			// First, convert src to grey
+			Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGB2GRAY);
+			Imgproc.adaptiveThreshold(mGray, mGray, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, tempOpt,
+					0);
+			Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 15);
+			Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 15);
+			Imgproc.cvtColor(mGray, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
+			filter = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(mRgba, filter);
 
-			} else {
-				Log.w(TAG, "mSrcMat is null OR mDstMat is null");
-				filter = null;
-			}
-			setSrcMat();
+		} else {
+			Log.w(TAG, "mSrcMat is null OR mDstMat is null");
+			filter = null;
 		}
-		filter = woodcut;
+		setSrcMat();
 	}
 
 	private void setNoiseFilterBitmap() {
-		if (noise == null) {
-			if (mGray != null && mRgba != null) {
-				int tempOpt = 5;
-				Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGB2GRAY);
-				Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 15);
-				Imgproc.Sobel(mGray, mGray, -1, 1, 1, 3, 1, 0);
-				Imgproc.equalizeHist(mGray, mGray);
-				for (int i = 0; i < tempOpt; i++) {
-					Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 5);
-				}
-				Imgproc.cvtColor(mGray, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
-				noise = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
-				Utils.matToBitmap(mRgba, noise);
-			} else {
-				Log.w(TAG, "mSrcMat is null OR mDstMat is null");
-				filter = noise;
+		if (mGray != null && mRgba != null) {
+			int tempOpt = 5;
+			Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGB2GRAY);
+			Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 15);
+			Imgproc.Sobel(mGray, mGray, -1, 1, 1, 3, 1, 0);
+			Imgproc.equalizeHist(mGray, mGray);
+			for (int i = 0; i < tempOpt; i++) {
+				Imgproc.GaussianBlur(mGray, mGray, new Size(5, 5), 5);
 			}
-			setSrcMat();
+			Imgproc.cvtColor(mGray, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
+			filter = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(mRgba, filter);
+		} else {
+			Log.w(TAG, "mSrcMat is null OR mDstMat is null");
+			filter = null;
 		}
-		filter = noise;
+		setSrcMat();
+
 	}
 
 	private void setCannyFilterBitmap() {
-		if (canny == null) {
-			// input frame has gray scale format
-			// Mat kernal = Mat.ones(5, 5, CvType.CV_8UC1);
-			// byte[] kbytes = new byte[]{0,0,1,0,0, 0,1,1,1,0, 1,1,1,1,1,
-			// 0,1,1,1,0, 0,0,1,0,0};
-			Mat kernal = Mat.ones(3, 3, CvType.CV_8UC1);
-			byte[] kbytes = new byte[] { 0, 1, 0, 1, 1, 1, 0, 1, 0 };
+		// input frame has gray scale format
+		// Mat kernal = Mat.ones(5, 5, CvType.CV_8UC1);
+		// byte[] kbytes = new byte[]{0,0,1,0,0, 0,1,1,1,0, 1,1,1,1,1,
+		// 0,1,1,1,0, 0,0,1,0,0};
+		Mat kernal = Mat.ones(3, 3, CvType.CV_8UC1);
+		byte[] kbytes = new byte[] { 0, 1, 0, 1, 1, 1, 0, 1, 0 };
 
-			kernal.put(0, 0, kbytes);
+		kernal.put(0, 0, kbytes);
 
-			// Convert orignal image to gray
-			if (mGray != null && mRgba != null) {
-				Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGB2GRAY);
-				int tempOpt = 3;
+		// Convert orignal image to gray
+		if (mGray != null && mRgba != null) {
+			Imgproc.cvtColor(mRgba, mGray, Imgproc.COLOR_RGB2GRAY);
+			int tempOpt = 3;
 
-				Imgproc.Canny(mGray, mIntermediateMat, 80, 100);
-				Imgproc.dilate(mIntermediateMat, mIntermediateMat, kernal);
-				Imgproc.GaussianBlur(mIntermediateMat, mIntermediateMat, new Size(tempOpt, tempOpt), 5);
-				Imgproc.cvtColor(mIntermediateMat, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
-				canny = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
-				Utils.matToBitmap(mRgba, canny);
-			} else {
-				Log.w(TAG, "mSrcMat is null OR mDstMat is null");
-				filter = null;
-			}
-			setSrcMat();
+			Imgproc.Canny(mGray, mIntermediateMat, 80, 100);
+			Imgproc.dilate(mIntermediateMat, mIntermediateMat, kernal);
+			Imgproc.GaussianBlur(mIntermediateMat, mIntermediateMat, new Size(tempOpt, tempOpt), 5);
+			Imgproc.cvtColor(mIntermediateMat, mRgba, Imgproc.COLOR_GRAY2RGBA, 4);
+			filter = Bitmap.createBitmap(mRgba.width(), mRgba.height(), Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(mRgba, filter);
+		} else {
+			Log.w(TAG, "mSrcMat is null OR mDstMat is null");
+			filter = null;
 		}
-		filter = canny;
+		setSrcMat();
 
 	}
 
@@ -344,6 +355,9 @@ public class FilterActivity extends MainActivity {
 			filter = null;
 			return;
 		}
+		if (filter != null) {
+			filter.recycle();
+		}
 		switch (hapticFilterEnum) {
 		case NONE:
 			// Default, no filter
@@ -351,7 +365,7 @@ public class FilterActivity extends MainActivity {
 			return;
 		case ORIGINAL:
 			// Original bitmap
-			filter = mImage;
+			filter = mImage.copy(Bitmap.Config.ARGB_8888, true);
 			return;
 		case WOODCUT:
 			// Woodcut
@@ -365,11 +379,47 @@ public class FilterActivity extends MainActivity {
 			// Grainy
 			setNoiseFilterBitmap();
 			return;
+		case WALLPAPER1:
+			setWallPaperFilterBitmap(1);
+			return;
+		case WALLPAPER2:
+			setWallPaperFilterBitmap(2);
+			return;
+		case WALLPAPER3:
+			setWallPaperFilterBitmap(3);
+			return;
 		default:
 			Log.d(TAG, "cannot recognize the filter, use default - " + hapticFilterEnum);
 			filter = this.mImage;
 
 		}
+	}
+
+	private void setWallPaperFilterBitmap(int i) {
+		int resId;
+		switch (i) {
+		case 1:
+			resId = R.drawable.wallpaper1_j;
+			break;
+		case 2:
+			resId = R.drawable.wallpaper2_j;
+			break;
+		case 3:
+			resId = R.drawable.wallpaper3_j;
+			break;
+		default:
+			Log.w(TAG, "Unknown wallpaper: " + i);
+			filter = this.mImage;
+			return;
+		}
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeResource(getResources(), resId, options);
+		// Calculate inSampleSize
+		options.inSampleSize = calculateInSampleSize(options);
+		// Decode bitmap with inSampleSize set
+		options.inJustDecodeBounds = false;
+		filter = BitmapFactory.decodeResource(getResources(), resId, options);
 	}
 
 	private void setView() {
@@ -386,23 +436,13 @@ public class FilterActivity extends MainActivity {
 		if (filter != null) {
 			mFrictionMapView.setDataBitmap(filter);
 		}
-		mFrictionMapView.setDisplayShowing(false);
 	}
 
 	private void getCurrentPageAndImage() {
 		this.currentPage = getMBook().getCurrentPage();
 
-		// if (currentPage != null && currentPage.getImageUri() != null) {
 		if (currentPage != null && currentPage.getImageBitmap() != null) {
-			// try {
-			// mImage = Media.getBitmap(getContentResolver(),
-			// currentPage.getImageUri());
 			mImage = currentPage.getImageBitmap();
-			// } catch (FileNotFoundException e) {
-			// Log.e(TAG, e.getMessage());
-			// } catch (IOException e) {
-			// Log.e(TAG, e.getMessage());
-			// }
 		} else {
 			Log.d(TAG, "currentPage is null or bitmap is null");
 		}
@@ -414,41 +454,44 @@ public class FilterActivity extends MainActivity {
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
-		mGray.release();
-		mRgba.release();
-		mIntermediateMat.release();
+		if (mGray != null) {
+			mGray.release();
+		}
+		if (mRgba != null) {
+			mRgba.release();
+		}
+		if (mIntermediateMat != null) {
+			mIntermediateMat.release();
+		}
 		if (filter != null) {
 			filter.recycle();
 		}
-		if (woodcut != null) {
-			woodcut.recycle();
-		}
-		if (canny != null) {
-			canny.recycle();
-		}
-		if (noise != null) {
-			noise.recycle();
-		}
+		// if (woodcut != null) {
+		// woodcut.recycle();
+		// }
+		// if (canny != null) {
+		// canny.recycle();
+		// }
+		// if (noise != null) {
+		// noise.recycle();
+		// }
 		mTpad.disconnectTPad();
+		super.onDestroy();
 	}
 
 	@Override
 	public void onPause() {
-		mGray.release();
-		mRgba.release();
-		mIntermediateMat.release();
+		if (mGray != null) {
+			mGray.release();
+		}
+		if (mRgba != null) {
+			mRgba.release();
+		}
+		if (mIntermediateMat != null) {
+			mIntermediateMat.release();
+		}
 		if (filter != null) {
 			filter.recycle();
-		}
-		if (woodcut != null) {
-			woodcut.recycle();
-		}
-		if (canny != null) {
-			canny.recycle();
-		}
-		if (noise != null) {
-			noise.recycle();
 		}
 		super.onPause();
 	}

@@ -269,7 +269,7 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public Bitmap getImageBitmap() {
-		if (imageBmp == null) {
+		if (imageBmp == null || imageBmp.isRecycled()) {
 			BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
 			bmpFactoryOptions.inSampleSize = 2;
 			imageBmp = BitmapFactory.decodeFile(imagePath, bmpFactoryOptions);
@@ -329,5 +329,10 @@ public class PageImpl implements Serializable, Page {
 
 	private void setFilterImagePath(String filterImagePath) {
 		this.filterAppliedImagePath = filterImagePath;
+	}
+
+	@Override
+	public boolean isUsingWallPaper() {
+		return this.hapticFilter.isWallPaper();
 	}
 }

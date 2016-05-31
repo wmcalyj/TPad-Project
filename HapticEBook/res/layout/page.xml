@@ -20,7 +20,8 @@
             android:layout_height="match_parent"
             android:adjustViewBounds="true"
             android:contentDescription="@string/header_description"
-            android:scaleType="fitStart"
+            android:scaleType="fitCenter"
+            android:scaleY="1.6"
             android:src="@drawable/spiral_notebook" />
 
         <RelativeLayout
@@ -89,6 +90,12 @@
         android:visibility="invisible" >
     </ImageView>
 
+    <nxr.tpad.lib.views.FrictionMapView
+        android:id="@+id/page_feel_image"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:contentDescription="@string/page_feel_image" />
+
     <ImageView
         android:id="@+id/page_image"
         android:layout_width="fill_parent"
@@ -119,5 +126,14 @@
             android:contentDescription="@string/footer_description_left"
             android:src="@drawable/corner_left" />
     </RelativeLayout>
+
+    <ProgressBar
+        android:id="@+id/page_loading"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" >
+    </ProgressBar>
 
 </RelativeLayout>

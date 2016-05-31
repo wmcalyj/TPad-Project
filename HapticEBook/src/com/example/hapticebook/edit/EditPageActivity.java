@@ -23,8 +23,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.Toast;
-import nxr.tpad.lib.TPad;
-import nxr.tpad.lib.TPadImpl;
 import nxr.tpad.lib.views.FrictionMapView;
 
 public class EditPageActivity extends MainActivity {
@@ -36,12 +34,11 @@ public class EditPageActivity extends MainActivity {
 	private MediaPlayer player;
 	boolean recordOn = false;
 	boolean playOn = false;
+	String TAG = "EditPage";
 
 	String chosenFilterFilePath;
 
 	Bitmap filterBmp;
-
-	TPad mTpad;
 
 	private Context context;
 
@@ -53,32 +50,87 @@ public class EditPageActivity extends MainActivity {
 
 		setImage();
 
-		mTpad = new TPadImpl(this);
 		tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
 		tpadView.setTpad(mTpad);
 		addAllButtonListerners();
 		applyFilter();
+		finishLoading();
 
 	}
 
+	private void setWallPaperFilterBitmap(int i) {
+		int resId;
+		switch (i) {
+		case 1:
+			resId = R.drawable.wallpaper1_j;
+			break;
+		case 2:
+			resId = R.drawable.wallpaper2_j;
+			break;
+		case 3:
+			resId = R.drawable.wallpaper3_j;
+			break;
+		default:
+			Log.w("", "Unknown wallpaper: " + i);
+			return;
+		}
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeResource(getResources(), resId, options);
+		// Calculate inSampleSize
+		options.inSampleSize = calculateInSampleSize(options);
+		// Decode bitmap with inSampleSize set
+		options.inJustDecodeBounds = false;
+		filterBmp = BitmapFactory.decodeResource(getResources(), resId, options);
+	}
+
+	@SuppressWarnings("incomplete-switch")
 	private void applyFilter() {
-		chosenFilterFilePath = currentPage.getFilterImagePath();
-		if (chosenFilterFilePath != null) {
-			filterBmp = BitmapFactory.decodeFile(chosenFilterFilePath);
-			if (filterBmp == null) {
-				return;
-			}
-			tpadView.setDataBitmap(filterBmp);
-			if (Configuration.DEBUG) {
-				image.setImageBitmap(filterBmp);
-			}
-			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
-			feel.setImageResource(R.drawable.touch_orange);
+		ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
+		if (filterBmp != null) {
+			filterBmp.recycle();
 		} else {
-			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
 			feel.setImageResource(R.drawable.touch);
+			return;
+		}
+		if (currentPage.getHapticFilter().isWallPaper()) {
+			switch (currentPage.getHapticFilter()) {
+			case WALLPAPER1:
+				setWallPaperFilterBitmap(1);
+				break;
+			case WALLPAPER2:
+				setWallPaperFilterBitmap(2);
+				break;
+			case WALLPAPER3:
+				setWallPaperFilterBitmap(3);
+				break;
+			}
+		} else {
+			chosenFilterFilePath = currentPage.getFilterImagePath();
+			if (chosenFilterFilePath != null) {
+				final BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inJustDecodeBounds = true;
+				BitmapFactory.decodeFile(chosenFilterFilePath, options);
+				// Calculate inSampleSize
+				options.inSampleSize = calculateInSampleSize(options);
+				// Decode bitmap with inSampleSize set
+				options.inJustDecodeBounds = false;
+				filterBmp = BitmapFactory.decodeFile(chosenFilterFilePath, options);
+				if (filterBmp == null) {
+					return;
+				}
+			}
+		}
+		tpadView.setDataBitmap(filterBmp);
+		if (Configuration.DEBUG) {
+			image.setImageBitmap(filterBmp);
 		}
 
+		if (filterBmp != null) {
+			feel.setImageResource(R.drawable.touch_orange);
+		} else {
+			feel.setImageResource(R.drawable.touch);
+		}
 	}
 
 	private void addAllButtonListerners() {
@@ -87,16 +139,6 @@ public class EditPageActivity extends MainActivity {
 		addSaveButtonListener();
 		addCancelButtonListener();
 		addAnnotateButtonListener();
-		addFeelButtonListener();
-
-	}
-
-	private void addFeelButtonListener() {
-		// TODO Auto-generated method stub
-		HapticFilterEnum currentFilter = currentPage.getHapticFilter();
-		if (currentFilter != null && !HapticFilterEnum.NONE.equals(currentFilter)) {
-
-		}
 
 	}
 
@@ -107,25 +149,10 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	private void setImage() {
-
-		// this.currentPage = (Page)
-		// getIntent().getSerializableExtra("currentPage");
 		this.currentPage = getMBook().getCurrentPage();
 		if (currentPage != null) {
 			image = (ImageView) findViewById(R.id.edit_image);
 			image.setImageBitmap(currentPage.getImageBitmap());
-			// image.setImageURI(currentPage.getImageUri());
-
-			// LinearLayout toolSet = (LinearLayout)
-			// findViewById(R.id.tool_set);
-			// RelativeLayout editPage = (RelativeLayout)
-			// findViewById(R.id.edit_page);
-			// editPage.bringChildToFront(toolSet);
-			// ImageView cancel = (ImageView)
-			// findViewById(R.id.edit_tool_cancel);
-			// cancel.bringToFront();
-			// ((View) cancel.getParent()).requestLayout();
-			// ((View) cancel).invalidate();
 		} else {
 			Log.d("", "currentPage is null");
 		}
@@ -211,6 +238,7 @@ public class EditPageActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
+				MainActivity.disableAfterClick(v);
 				currentPage.cancelAudioFile();
 				currentPage.cancelHapticFilter();
 				getMBook().saveBook();
@@ -232,6 +260,7 @@ public class EditPageActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
+				MainActivity.disableAfterClick(v);
 				LogService.WriteToLog(Action.SAVE_EDIT, "Save edited file " + currentPage.getImageFilePath());
 				currentPage.saveAudioFile();
 				currentPage.saveHapticFilter(chosenFilterFilePath);
@@ -246,7 +275,7 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	private void addAnnotateButtonListener() {
-		ImageView edit = (ImageView) findViewById(R.id.edit_tool_paint);
+		ImageView edit = (ImageView) findViewById(R.id.edit_tool_feel);
 
 		edit.setClickable(true);
 		edit.setOnClickListener(new OnClickListener() {
@@ -275,10 +304,16 @@ public class EditPageActivity extends MainActivity {
 			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
 			feel.setImageResource(R.drawable.touch_orange);
 		} else {
-			ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
-			feel.setImageResource(R.drawable.touch);
-			mTpad.turnOff();
-			image.setImageBitmap(currentPage.getImageBitmap());
+			HapticFilterEnum filterEnum = (HapticFilterEnum) intent
+					.getSerializableExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterEnum");
+			if (filterEnum != null) {
+				applyFilter();
+			} else {
+				ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
+				feel.setImageResource(R.drawable.touch);
+				tpadView.setDataBitmap(super.getEmptyBitmap());
+				mTpad.turnOff();
+			}
 		}
 	}
 
@@ -301,6 +336,13 @@ public class EditPageActivity extends MainActivity {
 			filterBmp.recycle();
 		}
 		mTpad.disconnectTPad();
+		if (recordOn && mRecorder != null) {
+			currentPage.stopRecording(mRecorder);
+		}
+		if (playOn && player != null) {
+			currentPage.stopPlayingAudio(player);
+		}
+
 		super.onDestroy();
 	}
 
@@ -308,6 +350,12 @@ public class EditPageActivity extends MainActivity {
 	public void onPause() {
 		if (filterBmp != null) {
 			filterBmp.recycle();
+		}
+		if (recordOn && mRecorder != null) {
+			currentPage.stopRecording(mRecorder);
+		}
+		if (playOn && player != null) {
+			currentPage.stopPlayingAudio(player);
 		}
 		super.onPause();
 	}

@@ -20,8 +20,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
         android:layout_centerVertical="true"
-        android:text="@string/app_intro" />
+        android:text="@string/app_intro"
+        android:textSize="30sp"
+        android:textStyle="italic" />
 
     <ImageView
         android:id="@+id/landing_footer"
@@ -32,16 +35,26 @@
         android:contentDescription="@string/footer_description_right"
         android:src="@drawable/corner_right" />
 
-    <ImageView
+    <Button
         android:id="@+id/landing_exit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:adjustViewBounds="true"
-        android:contentDescription="@string/landing_exit"
+        android:background="#ffff0000"
         android:maxHeight="80dp"
         android:maxWidth="80dp"
-        android:src="@drawable/exit" />
+        android:text="@string/landing_exit"
+        android:textSize="35sp" />
+
+    <ProgressBar
+        android:id="@+id/landing_loading"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" >
+    </ProgressBar>
 
 </RelativeLayout>

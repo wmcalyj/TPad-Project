@@ -37,6 +37,7 @@
     <string name="filter_prev">Filter previous</string>
     <string name="filter_shown_image">Filter image shown to others</string>
     <string name="edit_feel_image">haptic image view on edit page</string>
-    <string name="landing_exit">Exit the app</string>
+    <string name="landing_exit">EXIT</string>
+    <string name="page_feel_image">Page Feel Image View</string>
 
 </resources>

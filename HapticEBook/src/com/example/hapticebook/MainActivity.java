@@ -18,12 +18,19 @@ import com.example.hapticebook.log.Action;
 import com.example.hapticebook.log.LogService;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+import nxr.tpad.lib.TPad;
+import nxr.tpad.lib.TPadImpl;
 
 public class MainActivity extends Activity {
 
@@ -33,6 +40,8 @@ public class MainActivity extends Activity {
 	public static final int PAGE_ACTIVITY_DEFAULT = -1;
 	// To get access to mBook, use getMBook
 	private static Book mBook = null;
+	protected TPad mTpad;
+	private static Bitmap empty = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
 
 	public Book getMBook() {
 		if (mBook == null) {
@@ -43,15 +52,24 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		hideMenu();
 		if (!(CustomExceptionHandler.class.isAssignableFrom(Thread.getDefaultUncaughtExceptionHandler().getClass()))) {
 			Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler());
 		}
+		mTpad = new TPadImpl(this);
 		super.onCreate(savedInstanceState);
-		hideMenu();
 		// setContentView(R.layout.landing);
 		if (mBook == null) {
 			mBook = loadBook();
 		}
+
+	}
+
+	protected Bitmap getEmptyBitmap() {
+		if (empty == null || empty.isRecycled()) {
+			empty = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+		}
+		return empty;
 	}
 
 	public void hideMenu() {
@@ -163,6 +181,33 @@ public class MainActivity extends Activity {
 		return mBook.isEmpty();
 	}
 
+	protected int calculateInSampleSize(BitmapFactory.Options options) {
+		// Raw height and width of image
+		final int height = options.outHeight;
+		final int width = options.outWidth;
+		int inSampleSize = 1;
+
+		Display display = getWindowManager().getDefaultDisplay();
+		Point size = new Point();
+		display.getSize(size);
+		int reqHeight = size.y;
+		int reqWidth = size.x;
+
+		if (height > reqHeight || width > reqWidth) {
+
+			final int halfHeight = height / 2;
+			final int halfWidth = width / 2;
+
+			// Calculate the largest inSampleSize value that is a power of 2 and
+			// keeps both
+			// height and width larger than the requested height and width.
+			while ((halfHeight / inSampleSize) > reqHeight && (halfWidth / inSampleSize) > reqWidth) {
+				inSampleSize *= 2;
+			}
+		}
+		return inSampleSize;
+	}
+
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
@@ -178,5 +223,33 @@ public class MainActivity extends Activity {
 	public void finishAffinity() {
 		LogService.WriteToLog(Action.CLOSE, "Exit app");
 		super.finishAffinity();
+	}
+
+	protected static void disableAfterClick(View v) {
+		// We need this function for all save/cancel buttons because we don't
+		// want the children to click on save or cancel twice to trigger use
+		// recycled bitmap exception
+		v.setClickable(false);
+	}
+
+	protected void finishLoading() {
+		ProgressBar l1 = (ProgressBar) findViewById(R.id.filter_loading);
+		ProgressBar l2 = (ProgressBar) findViewById(R.id.landing_loading);
+		ProgressBar l3 = (ProgressBar) findViewById(R.id.page_loading);
+		if (l1 != null) {
+			l1.setVisibility(View.GONE);
+		}
+		if (l2 != null) {
+			l2.setVisibility(View.GONE);
+		}
+		if (l3 != null) {
+			l3.setVisibility(View.GONE);
+		}
+	}
+
+	@Override
+	protected void onResume() {
+		hideMenu();
+		super.onResume();
 	}
 }

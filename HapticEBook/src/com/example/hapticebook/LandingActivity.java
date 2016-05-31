@@ -6,21 +6,26 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 public class LandingActivity extends MainActivity {
 
+	private ProgressBar loading;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		super.hideMenu();
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.landing);
 		addFooterListener();
 		addExitListener();
-		super.hideMenu();
+		loading = (ProgressBar) findViewById(R.id.landing_loading);
 	}
 
 	private void addExitListener() {
-		ImageView exit = (ImageView) findViewById(R.id.landing_exit);
+		Button exit = (Button) findViewById(R.id.landing_exit);
 		exit.setClickable(true);
 		exit.setOnClickListener(new OnClickListener() {
 			@Override
@@ -68,6 +73,7 @@ public class LandingActivity extends MainActivity {
 		footer.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				loading.setVisibility(View.VISIBLE);
 				Intent intent;
 				intent = new Intent(LandingActivity.this, PageActivity.class);
 				startActivity(intent);

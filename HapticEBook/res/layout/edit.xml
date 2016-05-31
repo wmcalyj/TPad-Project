@@ -48,6 +48,8 @@
             android:src="@drawable/touch" >
         </ImageView>
 
+        <!-- We no longer need the paint button, the function is put in the feel button -->
+        <!--
         <ImageView
             android:id="@+id/edit_tool_paint"
             android:layout_width="0dp"
@@ -56,6 +58,7 @@
             android:contentDescription="@string/edit_tool_edit"
             android:src="@drawable/paintbrush" >
         </ImageView>
+        -->
 
         <ImageView
             android:id="@+id/edit_tool_record"
@@ -96,5 +99,14 @@
         android:maxHeight="60dp"
         android:maxWidth="60dp"
         android:src="@drawable/cancel" />
+
+    <ProgressBar
+        android:id="@+id/pbHeaderProgress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" >
+    </ProgressBar>
 
 </RelativeLayout>
