@@ -9,16 +9,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.example.hapticebook.config.Configuration;
-import com.example.hapticebook.data.HapticFilterEnum;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.edit.EditPageActivity;
+import com.example.hapticebook.filterservice.impl.FilterService;
 import com.example.hapticebook.log.Action;
 import com.example.hapticebook.log.LogService;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -57,6 +56,7 @@ public class PageActivity extends MainActivity {
 
 	private Bitmap imageTaken;
 	Bitmap filterBmp;
+	Bitmap mImage;
 
 	private FrictionMapView tpadView;
 	// private ProgressBar loading;
@@ -97,8 +97,8 @@ public class PageActivity extends MainActivity {
 
 			// loading = (ProgressBar) findViewById(R.id.page_loading);
 			// Uri iamgeURI = currentPage.getImageUri();
-			Bitmap imageBmp = currentPage.getImageBitmap();
-			image.setImageBitmap(imageBmp);
+			mImage = currentPage.getImageBitmap();
+			image.setImageBitmap(mImage);
 
 		}
 		// Set all buttons, etc
@@ -112,53 +112,17 @@ public class PageActivity extends MainActivity {
 		if (filterBmp != null) {
 			filterBmp.recycle();
 		}
-		if (currentPage.getHapticFilter() == null || currentPage.getHapticFilter().equals(HapticFilterEnum.NONE)) {
+		filterBmp = FilterService.getTPadFilter(getResources(), currentPage, getScreenSize(this.imageTaken));
+		if (filterBmp == null) {
 			mTpad.turnOff();
 			tpadView.setDataBitmap(super.getEmptyBitmap());
 			return;
 		} else {
-			if (currentPage.isUsingWallPaper()) {
-				filterBmp = setWallPaperFilterBitmap(currentPage.getHapticFilter());
-
-			} else {
-				String chosenFilterFilePath = currentPage.getFilterImagePath();
-				if (chosenFilterFilePath != null) {
-					filterBmp = BitmapFactory.decodeFile(chosenFilterFilePath);
-				}
-			}
-			if (filterBmp == null) {
-				return;
-			}
 			tpadView.setDataBitmap(filterBmp);
 			if (Configuration.DEBUG) {
 				image.setImageBitmap(filterBmp);
 			}
 		}
-	}
-
-	private Bitmap setWallPaperFilterBitmap(HapticFilterEnum filter) {
-		int resId;
-		switch (filter) {
-		case WALLPAPER1:
-			resId = R.drawable.wallpaper1_j;
-			break;
-		case WALLPAPER2:
-			resId = R.drawable.wallpaper2_j;
-			break;
-		case WALLPAPER3:
-			resId = R.drawable.wallpaper3_j;
-			break;
-		default:
-			return null;
-		}
-		final BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeResource(getResources(), resId, options);
-		// Calculate inSampleSize
-		options.inSampleSize = calculateInSampleSize(options);
-		// Decode bitmap with inSampleSize set
-		options.inJustDecodeBounds = false;
-		return BitmapFactory.decodeResource(getResources(), resId, options);
 	}
 
 	private void bringHeaderSetToFront() {
@@ -181,7 +145,6 @@ public class PageActivity extends MainActivity {
 
 				@Override
 				public void onClick(final View v) {
-					// TODO Auto-generated method stub
 					if (!audioOn) {
 						((ImageView) v).setImageResource(R.drawable.audio_blue);
 						audioOn = true;
@@ -227,6 +190,7 @@ public class PageActivity extends MainActivity {
 		prev.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				disablePlaying();
 				// loading.setVisibility(View.VISIBLE);
 				currentPage = book.goToPrevPage();
 				refresh();
@@ -243,6 +207,7 @@ public class PageActivity extends MainActivity {
 			next.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
+					disablePlaying();
 					// loading.setVisibility(View.VISIBLE);
 					currentPage = book.goToNextPage();
 					refresh();
@@ -258,6 +223,7 @@ public class PageActivity extends MainActivity {
 		newPage.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				disablePlaying();
 				// create Intent to take a picture and return control to the
 				// calling application
 				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -283,7 +249,11 @@ public class PageActivity extends MainActivity {
 	/** Create a file Uri for saving an image or video */
 	private Uri getOutputMediaFileUri() {
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-		return Uri.fromFile(new File(root + "pictures/", timeStamp + ".jpg"));
+		File subFolder = new File(root + "pictures/");
+		if (!subFolder.exists()) {
+			subFolder.mkdirs();
+		}
+		return Uri.fromFile(new File(subFolder, timeStamp + ".jpg"));
 	}
 
 	public void addDeletePageListener() {
@@ -293,6 +263,7 @@ public class PageActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
+				disablePlaying();
 				book.deleteCurrentPage();
 				currentPage = book.getCurrentPage();
 				if (currentPage == null) {
@@ -313,10 +284,12 @@ public class PageActivity extends MainActivity {
 
 			@Override
 			public void onClick(View v) {
+				disablePlaying();
 				Page currentPage = book.getCurrentPage();
 				LogService.WriteToLog(Action.EDIT, "Edit page - " + currentPage.getImageFilePath());
 				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
 				// intent.putExtra("currentPage", (Serializable) currentPage);
+				cleanup();
 				startActivity(intent);
 			}
 		});
@@ -326,6 +299,7 @@ public class PageActivity extends MainActivity {
 	private void goToLandingPage() {
 		Intent intent = new Intent(PageActivity.this, LandingActivity.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		cleanup();
 		startActivity(intent);
 	}
 
@@ -335,6 +309,7 @@ public class PageActivity extends MainActivity {
 	 * "Deleted" TextView should be shown
 	 */
 	private void refresh() {
+		cleanup();
 		super.hideMenu();
 		if (this.currentPage == null) {
 			return;
@@ -373,10 +348,10 @@ public class PageActivity extends MainActivity {
 
 		// Set new image source
 		// Uri imageUri = currentPage.getImageUri();
-		Bitmap imageBmp = currentPage.getImageBitmap();
+		mImage = currentPage.getImageBitmap();
 		image = (ImageView) findViewById(R.id.page_image);
 		setFrictionMapView();
-		image.setImageBitmap(imageBmp);
+		image.setImageBitmap(mImage);
 	}
 
 	private void addBackListener() {
@@ -455,7 +430,6 @@ public class PageActivity extends MainActivity {
 
 	@Override
 	protected void onResume() {
-		super.hideMenu();
 		super.onResume();
 		int newPageActivityFlag = getIntent().getIntExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_DEFAULT);
 		switch (newPageActivityFlag) {
@@ -513,14 +487,22 @@ public class PageActivity extends MainActivity {
 				getIntent().putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
 
 			} else if (resultCode == RESULT_CANCELED) {
-				// User cancelled the image capture (back is pressed)
-				// Go to the previous page that the user was at
-				refresh();
+				if (getMBook().isEmpty()) {
+					goToLandingPage();
+				} else {
+					// User cancelled the image capture (back is pressed)
+					// Go to the previous page that the user was at
+					refresh();
+				}
 
 			} else {
-				// Image capture failed, advise user
-				// Go to the previous page that the user was at
-				refresh();
+				if (getMBook().isEmpty()) {
+					goToLandingPage();
+				} else {
+					// Image capture failed, advise user
+					// Go to the previous page that the user was at
+					refresh();
+				}
 			}
 		}
 	}
@@ -536,18 +518,33 @@ public class PageActivity extends MainActivity {
 
 	@Override
 	public void onPause() {
+		cleanup();
 		super.onPause();
-		if (filterBmp != null) {
-			filterBmp.recycle();
-		}
 	}
 
 	@Override
 	public void onDestroy() {
+		cleanup();
+		super.onDestroy();
+	}
+
+	private void cleanup() {
 		if (filterBmp != null) {
 			filterBmp.recycle();
+			filterBmp = null;
 		}
-		super.onDestroy();
+		if (mImage != null) {
+			mImage.recycle();
+			mImage = null;
+		}
+		System.gc();
+	}
+
+	private void disablePlaying() {
+		if (audioOn && mPlayer != null) {
+			currentPage.stopPlayingAudio(mPlayer);
+			audioOn = false;
+		}
 	}
 
 }

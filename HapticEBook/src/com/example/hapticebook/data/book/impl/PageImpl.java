@@ -87,6 +87,7 @@ public class PageImpl implements Serializable, Page {
 		if (imageBmp != null) {
 			imageBmp.recycle();
 			imageBmp = null;
+			System.gc();
 		}
 		if (nextAvailablePage != null) {
 			String fileName;
@@ -107,6 +108,7 @@ public class PageImpl implements Serializable, Page {
 		if (imageBmp != null) {
 			imageBmp.recycle();
 			imageBmp = null;
+			System.gc();
 		}
 		if (prevAvailablePage != null) {
 			String fileName;
@@ -135,6 +137,12 @@ public class PageImpl implements Serializable, Page {
 		this.prevAvailablePage = null;
 		this.nextAvailablePage = null;
 		this.available = false;
+		if (imageBmp != null) {
+			imageBmp.recycle();
+			imageBmp = null;
+		}
+		System.gc();
+
 	}
 
 	PageImpl(String rootPath) {
@@ -238,10 +246,11 @@ public class PageImpl implements Serializable, Page {
 	@Override
 	public void stopPlayingAudio(MediaPlayer mPlayer) {
 		LogService.WriteToLog(Action.STOP_AUDIO, "Stop playing audio file - " + mRecordFile.getAbsolutePath());
-
-		mPlayer.reset();
-		mPlayer.release();
-		mPlayer = null;
+		if (mPlayer != null) {
+			mPlayer.reset();
+			mPlayer.release();
+			mPlayer = null;
+		}
 	}
 
 	@Override

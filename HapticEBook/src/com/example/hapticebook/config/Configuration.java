@@ -8,4 +8,13 @@ public class Configuration {
 	// Where to save all the images, recordings, logs and crash reports
 	public static final String ROOT_PATH = Environment.getExternalStorageDirectory().toString();
 
+	public static final boolean USE_GIVEN_INSAMPLESIZE = true;
+	public static final int INSAMPLESIZE = 4;
+
+	public class FilterValue {
+		public static final int WOODCUT = 41;
+		public static final int CANNY = 3;
+		public static final int NOISE = 5;
+	}
+
 }

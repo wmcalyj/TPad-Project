@@ -18,6 +18,7 @@ public class LandingActivity extends MainActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.hideMenu();
 		super.onCreate(savedInstanceState);
+		System.gc();
 		setContentView(R.layout.landing);
 		addFooterListener();
 		addExitListener();

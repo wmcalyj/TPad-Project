@@ -42,6 +42,7 @@ public class MainActivity extends Activity {
 	private static Book mBook = null;
 	protected TPad mTpad;
 	private static Bitmap empty = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+	private static Point screenSize;
 
 	public Book getMBook() {
 		if (mBook == null) {
@@ -62,7 +63,23 @@ public class MainActivity extends Activity {
 		if (mBook == null) {
 			mBook = loadBook();
 		}
+	}
 
+	protected Point getScreenSize(Bitmap original) {
+		if (original == null) {
+			if (screenSize == null) {
+				Display display = getWindowManager().getDefaultDisplay();
+				screenSize = new Point();
+				display.getSize(screenSize);
+			}
+			return screenSize;
+		}
+		if (screenSize == null || original.getWidth() != screenSize.x || original.getHeight() != screenSize.y) {
+			screenSize = new Point();
+			screenSize.x = original.getWidth();
+			screenSize.y = original.getHeight();
+		}
+		return screenSize;
 	}
 
 	protected Bitmap getEmptyBitmap() {
