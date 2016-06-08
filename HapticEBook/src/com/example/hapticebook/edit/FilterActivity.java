@@ -78,7 +78,7 @@ public class FilterActivity extends MainActivity {
 					applyFilter(filterEnum);
 					current = filterEnum.getFilterIndex();
 				}
-				textView.setText(String.valueOf(current));
+				textView.setText(getLabelString(current));
 				setView();
 
 			}
@@ -98,6 +98,16 @@ public class FilterActivity extends MainActivity {
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_6, this, mLoaderCallback);
 	}
 
+	protected String getLabelString(int filterNumber) {
+		if (filterNumber == 0) {
+			return "No Texture";
+		} else {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Texture ").append(filterNumber);
+			return sb.toString();
+		}
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -105,7 +115,7 @@ public class FilterActivity extends MainActivity {
 		current = 0;
 		setContentView(R.layout.filter);
 		textView = (TextView) findViewById(R.id.filter_id);
-		textView.setText(String.valueOf(current));
+		textView.setText(getLabelString(current));
 		// Load new tpad object from TPad Implementation Library
 		mTpad = new TPadImpl(this);
 		addToolSet();
@@ -288,7 +298,7 @@ public class FilterActivity extends MainActivity {
 	}
 
 	protected void setFilterId() {
-		textView.setText(String.valueOf(current));
+		textView.setText(getLabelString(current));
 	}
 
 	private void applyFilter(HapticFilterEnum hapticFilterEnum) {
@@ -348,12 +358,6 @@ public class FilterActivity extends MainActivity {
 	public void onDestroy() {
 		cleanup();
 		super.onDestroy();
-	}
-
-	@Override
-	public void onPause() {
-		cleanup();
-		super.onPause();
 	}
 
 	@Override

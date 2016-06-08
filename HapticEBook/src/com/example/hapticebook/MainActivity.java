@@ -44,6 +44,8 @@ public class MainActivity extends Activity {
 	private static Bitmap empty = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
 	private static Point screenSize;
 
+	static boolean showEmptyInstruction = true;
+
 	public Book getMBook() {
 		if (mBook == null) {
 			mBook = loadBook();

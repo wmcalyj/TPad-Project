@@ -65,7 +65,7 @@ public class EditPageActivity extends MainActivity {
 		}
 		filterBmp = FilterService.getTPadFilter(getResources(), currentPage, getScreenSize(mImage));
 		if (filterBmp == null) {
-			feel.setImageResource(R.drawable.touch);
+			feel.setImageResource(R.drawable.texture);
 			tpadView.setDataBitmap(getEmptyBitmap());
 			mTpad.turnOff();
 			return;
@@ -74,7 +74,7 @@ public class EditPageActivity extends MainActivity {
 			if (Configuration.DEBUG) {
 				image.setImageBitmap(filterBmp);
 			}
-			feel.setImageResource(R.drawable.touch_orange);
+			feel.setImageResource(R.drawable.touch_active);
 		}
 	}
 
@@ -122,7 +122,7 @@ public class EditPageActivity extends MainActivity {
 					// It's current off, on click should start recording
 					mRecorder = currentPage.startRecording();
 					if (mRecorder != null) {
-						((ImageView) v).setImageResource(R.drawable.record_red);
+						((ImageView) v).setImageResource(R.drawable.record_active);
 						recordOn = true;
 					} else {
 						Toast.makeText(context, "Failed to start recorder, please try again later", Toast.LENGTH_LONG)
@@ -148,7 +148,7 @@ public class EditPageActivity extends MainActivity {
 				if (playOn) {
 					// Audio is on, turn off
 					currentPage.stopPlayingAudio(player);
-					((ImageView) v).setImageResource(R.drawable.audio);
+					((ImageView) v).setImageResource(R.drawable.play);
 					playOn = false;
 				} else {
 					// Audio is off, turn on
@@ -158,14 +158,14 @@ public class EditPageActivity extends MainActivity {
 						Toast.makeText(context, "Please record an audio before playing it", Toast.LENGTH_LONG).show();
 
 					} else {
-						((ImageView) v).setImageResource(R.drawable.audio_blue);
+						((ImageView) v).setImageResource(R.drawable.play_active);
 						playOn = true;
 						player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
 							@Override
 							public void onCompletion(MediaPlayer mp) {
 								currentPage.stopPlayingAudio(mp);
-								((ImageView) v).setImageResource(R.drawable.audio);
+								((ImageView) v).setImageResource(R.drawable.play);
 								playOn = false;
 
 							}
@@ -288,9 +288,7 @@ public class EditPageActivity extends MainActivity {
 
 	@Override
 	public void onDestroy() {
-		if (filterBmp != null) {
-			filterBmp.recycle();
-		}
+		cleanup();
 		mTpad.disconnectTPad();
 		if (recordOn && mRecorder != null) {
 			currentPage.stopRecording(mRecorder);
@@ -304,9 +302,6 @@ public class EditPageActivity extends MainActivity {
 
 	@Override
 	public void onPause() {
-		if (filterBmp != null) {
-			filterBmp.recycle();
-		}
 		if (recordOn && mRecorder != null) {
 			currentPage.stopRecording(mRecorder);
 		}
@@ -329,7 +324,7 @@ public class EditPageActivity extends MainActivity {
 		if (playOn && player != null) {
 			currentPage.stopPlayingAudio(player);
 			ImageView playing = (ImageView) findViewById(R.id.edit_tool_play);
-			playing.setImageResource(R.drawable.audio);
+			playing.setImageResource(R.drawable.play);
 			playOn = false;
 
 		}

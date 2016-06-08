@@ -17,4 +17,6 @@ public class Configuration {
 		public static final int NOISE = 5;
 	}
 
+	public static String EMPTYBOOKINSTRUCTION = "Create your science notebook by taking a photo.\nTap anywhere on the screen to take the photo.";
+
 }

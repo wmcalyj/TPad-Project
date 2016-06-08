@@ -16,6 +16,8 @@ import com.example.hapticebook.filterservice.impl.FilterService;
 import com.example.hapticebook.log.Action;
 import com.example.hapticebook.log.LogService;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
@@ -28,10 +30,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import nxr.tpad.lib.views.FrictionMapView;
 
 public class PageActivity extends MainActivity {
@@ -51,6 +56,7 @@ public class PageActivity extends MainActivity {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 
 	private Uri fileUri;
+	private static AlertDialog alert;
 
 	public static final int MEDIA_TYPE_IMAGE = 1;
 
@@ -72,6 +78,8 @@ public class PageActivity extends MainActivity {
 		tpadView = (FrictionMapView) findViewById(R.id.page_feel_image);
 		tpadView.setTpad(mTpad);
 		if (this.isBookEmpty()) {
+			showInstructionForEmptyBook();
+			playInstructionForEmptyBookAudio();
 			// If book is empty, go to camera
 			// create Intent to take a picture and return control to the
 			// calling application
@@ -106,6 +114,22 @@ public class PageActivity extends MainActivity {
 		bringHeaderSetToFront();
 		addHeaderButtonListeners();
 		finishLoading();
+		createAlertDialog();
+	}
+
+	private void playInstructionForEmptyBookAudio() {
+		// TODO Auto-generated method stub
+	}
+
+	private void showInstructionForEmptyBook() {
+		if (showEmptyInstruction) {
+			Toast toast = Toast.makeText(this, Configuration.EMPTYBOOKINSTRUCTION, Toast.LENGTH_LONG);
+			ViewGroup group = (ViewGroup) toast.getView();
+			TextView messageTextView = (TextView) group.getChildAt(0);
+			messageTextView.setTextSize(25);
+			toast.show();
+			showEmptyInstruction = false;
+		}
 	}
 
 	private void setFrictionMapView() {
@@ -146,7 +170,7 @@ public class PageActivity extends MainActivity {
 				@Override
 				public void onClick(final View v) {
 					if (!audioOn) {
-						((ImageView) v).setImageResource(R.drawable.audio_blue);
+						((ImageView) v).setImageResource(R.drawable.play_bottom);
 						audioOn = true;
 						mPlayer = currentPage.startPlayingAudio();
 						mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -154,13 +178,16 @@ public class PageActivity extends MainActivity {
 							@Override
 							public void onCompletion(MediaPlayer mp) {
 								currentPage.stopPlayingAudio(mp);
-								((ImageView) v).setImageResource(R.drawable.audio);
+								// Have no icon to switch
+								// ((ImageView)
+								// v).setImageResource(R.drawable.audio);
 								audioOn = false;
 
 							}
 						});
 					} else {
-						((ImageView) v).setImageResource(R.drawable.audio);
+						// Have no icon to switch
+						// ((ImageView) v).setImageResource(R.drawable.audio);
 						audioOn = false;
 						currentPage.stopPlayingAudio(mPlayer);
 					}
@@ -184,7 +211,7 @@ public class PageActivity extends MainActivity {
 
 	private void addPrevListener() {
 		ImageView prev = (ImageView) findViewById(R.id.page_footer_left);
-		prev.setImageResource(R.drawable.corner_left);
+		prev.setImageResource(R.drawable.flip_left);
 
 		prev.setClickable(true);
 		prev.setOnClickListener(new OnClickListener() {
@@ -264,16 +291,55 @@ public class PageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				disablePlaying();
-				book.deleteCurrentPage();
-				currentPage = book.getCurrentPage();
-				if (currentPage == null) {
-					// Book is now empty
-					goToLandingPage();
-				}
-				refresh();
+				displayConfirmationDialog();
+				// book.deleteCurrentPage();
+				// currentPage = book.getCurrentPage();
+				// if (currentPage == null) {
+				// // Book is now empty
+				// goToLandingPage();
+				// }
+				// refresh();
 			}
 
 		});
+
+	}
+
+	private void createAlertDialog() {
+		alert = new AlertDialog.Builder(this).setTitle("Confirmation")
+				.setMessage("Are you sure you want to delete this page?").setIcon(android.R.drawable.ic_dialog_alert)
+				.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						book.deleteCurrentPage();
+						currentPage = book.getCurrentPage();
+						if (currentPage == null) {
+							// Book is now empty
+							goToLandingPage();
+						}
+						refresh();
+					}
+				}).setNegativeButton("Cancel", null).create();
+	}
+
+	protected void displayConfirmationDialog() {
+		if (alert == null) {
+			createAlertDialog();
+		}
+		alert.getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+				WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+
+		// Show the dialog!
+		alert.show();
+
+		// Set the dialog to immersive
+		alert.getWindow().getDecorView()
+				.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+
+		// Clear the not focusable flag from the window
+		alert.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
 
 	}
 
@@ -514,12 +580,6 @@ public class PageActivity extends MainActivity {
 			book.addNewPage(newPage);
 			book.saveBook();
 		}
-	}
-
-	@Override
-	public void onPause() {
-		cleanup();
-		super.onPause();
 	}
 
 	@Override

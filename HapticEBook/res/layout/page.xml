@@ -76,20 +76,6 @@
         </RelativeLayout>
     </FrameLayout>
 
-    <ImageView
-        android:id="@+id/page_play_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/page_header_set"
-        android:adjustViewBounds="true"
-        android:contentDescription="@string/page_play_audio"
-        android:maxHeight="80dp"
-        android:maxWidth="80dp"
-        android:src="@drawable/audio"
-        android:visibility="invisible" >
-    </ImageView>
-
     <nxr.tpad.lib.views.FrictionMapView
         android:id="@+id/page_feel_image"
         android:layout_width="fill_parent"
@@ -115,7 +101,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:contentDescription="@string/footer_description_right"
-            android:src="@drawable/corner_right" />
+            android:src="@drawable/flip_right" />
 
         <ImageView
             android:id="@+id/page_footer_left"
@@ -124,7 +110,21 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
             android:contentDescription="@string/footer_description_left"
-            android:src="@drawable/corner_left" />
+            android:src="@drawable/flip_left" />
+
+        <ImageView
+            android:id="@+id/page_play_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="24dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/page_play_audio"
+            android:maxHeight="80dp"
+            android:maxWidth="80dp"
+            android:src="@drawable/play_bottom"
+            android:visibility="invisible" />
     </RelativeLayout>
 
     <ProgressBar

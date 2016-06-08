@@ -19,7 +19,7 @@
         android:contentDescription="@string/annotate_save"
         android:maxHeight="60dp"
         android:maxWidth="60dp"
-        android:src="@drawable/check_save" />
+        android:src="@drawable/save" />
 
     <ImageView
         android:id="@+id/annotate_cancel"

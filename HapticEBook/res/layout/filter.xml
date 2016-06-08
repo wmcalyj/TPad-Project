@@ -27,7 +27,7 @@
         android:id="@+id/tool_set"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#80999999"
+        android:background="#E6999999"
         android:orientation="horizontal" >
 
         <ImageView
@@ -69,7 +69,7 @@
         android:contentDescription="@string/filter_save"
         android:maxHeight="60dp"
         android:maxWidth="60dp"
-        android:src="@drawable/check_save_blue" />
+        android:src="@drawable/save_with_bkgd" />
 
     <ImageView
         android:id="@+id/filter_cancel"
@@ -81,7 +81,7 @@
         android:contentDescription="@string/filter_cancel"
         android:maxHeight="60dp"
         android:maxWidth="60dp"
-        android:src="@drawable/cancel" />
+        android:src="@drawable/cancel_with_bkgd" />
 
     <ProgressBar
         android:id="@+id/filter_loading"

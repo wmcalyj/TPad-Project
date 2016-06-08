@@ -36,7 +36,7 @@
         android:id="@+id/tool_set"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#80999999"
+        android:background="#E6999999"
         android:orientation="horizontal" >
 
         <ImageView
@@ -45,7 +45,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1.0"
             android:contentDescription="@string/edit_tool_feel"
-            android:src="@drawable/touch" >
+            android:src="@drawable/texture" >
         </ImageView>
 
         <!-- We no longer need the paint button, the function is put in the feel button -->
@@ -75,7 +75,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1.0"
             android:contentDescription="@string/edit_tool_play"
-            android:src="@drawable/audio" >
+            android:src="@drawable/play" >
         </ImageView>
 
         <ImageView
@@ -84,7 +84,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1.0"
             android:contentDescription="@string/edit_tool_save"
-            android:src="@drawable/check_save_blue" >
+            android:src="@drawable/save" >
         </ImageView>
     </LinearLayout>
 
@@ -98,7 +98,7 @@
         android:contentDescription="@string/edit_tool_cancel"
         android:maxHeight="60dp"
         android:maxWidth="60dp"
-        android:src="@drawable/cancel" />
+        android:src="@drawable/cancel_with_bkgd" />
 
     <ProgressBar
         android:id="@+id/pbHeaderProgress"
