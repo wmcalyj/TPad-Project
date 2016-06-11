@@ -24,7 +24,7 @@
             android:scaleY="1.6"
             android:src="@drawable/spiral_notebook" />
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top"
@@ -34,7 +34,7 @@
                 android:id="@+id/page_edit_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
+                android:layout_weight="1.0"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/tool_edit_button"
                 android:maxHeight="60dp"
@@ -44,7 +44,7 @@
                 android:id="@+id/page_delete_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
+                android:layout_weight="1.0"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/tool_delete_button"
                 android:maxHeight="60dp"
@@ -54,13 +54,14 @@
                 android:id="@+id/page_new_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@id/page_delete_button"
+                android:layout_weight="1.0"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/tool_new_button"
                 android:maxHeight="60dp"
                 android:src="@drawable/new_page" />
 
-            <TextView
+            <!--
+                 <TextView
                 android:id="@+id/deleted"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -73,7 +74,9 @@
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:visibility="invisible" />
-        </RelativeLayout>
+            -->
+
+        </LinearLayout>
     </FrameLayout>
 
     <nxr.tpad.lib.views.FrictionMapView

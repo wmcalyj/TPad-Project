@@ -1,5 +1,7 @@
 package com.example.hapticebook;
 
+import com.example.hapticebook.config.Configuration;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -9,7 +11,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+import android.widget.TextView;
 
 public class LandingActivity extends MainActivity {
 
@@ -21,9 +23,16 @@ public class LandingActivity extends MainActivity {
 		super.onCreate(savedInstanceState);
 		System.gc();
 		setContentView(R.layout.landing);
+		addAppIntro();
 		addFooterListener();
 		addExitListener();
 		loading = (ProgressBar) findViewById(R.id.landing_loading);
+	}
+
+	private void addAppIntro() {
+		if (Configuration.HAPTICDISABLED) {
+			((TextView) findViewById(R.id.app_intro)).setText(Configuration.APPINTRO_NOHAPTIC);
+		}
 	}
 
 	private void addExitListener() {

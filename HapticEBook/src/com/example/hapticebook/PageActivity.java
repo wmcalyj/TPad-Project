@@ -381,13 +381,13 @@ public class PageActivity extends MainActivity {
 			return;
 		}
 		// Set the visibility of TextView (deleted)
-		if (!this.currentPage.isAvailable()) {
-			TextView imageDeleted = (TextView) findViewById(R.id.deleted);
-			imageDeleted.setVisibility(View.VISIBLE);
-		} else {
-			TextView imageDeleted = (TextView) findViewById(R.id.deleted);
-			imageDeleted.setVisibility(View.INVISIBLE);
-		}
+		// if (!this.currentPage.isAvailable()) {
+		// TextView imageDeleted = (TextView) findViewById(R.id.deleted);
+		// imageDeleted.setVisibility(View.VISIBLE);
+		// } else {
+		// TextView imageDeleted = (TextView) findViewById(R.id.deleted);
+		// imageDeleted.setVisibility(View.INVISIBLE);
+		// }
 
 		// Set the left footer and right footer (go to previous/next page)
 		leftFooter = (ImageView) findViewById(R.id.page_footer_left);

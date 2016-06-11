@@ -27,7 +27,7 @@ import nxr.tpad.lib.views.FrictionMapView;
 public class EditPageActivity extends MainActivity {
 
 	Page currentPage;
-	ImageView image;
+	ImageView image, save, cancel, recording, play, edit;
 	FrictionMapView tpadView;
 	private MediaRecorder mRecorder;
 	private MediaPlayer player;
@@ -44,6 +44,10 @@ public class EditPageActivity extends MainActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.edit);
+		if (Configuration.HAPTICDISABLED) {
+			edit = (ImageView) findViewById(R.id.edit_tool_feel);
+			edit.setVisibility(View.GONE);
+		}
 		context = this;
 
 		setImage();
@@ -83,7 +87,9 @@ public class EditPageActivity extends MainActivity {
 		addPlayButtonListener();
 		addSaveButtonListener();
 		addCancelButtonListener();
-		addAnnotateButtonListener();
+		if (!Configuration.HAPTICDISABLED) {
+			addAnnotateButtonListener();
+		}
 	}
 
 	@Override
@@ -105,7 +111,7 @@ public class EditPageActivity extends MainActivity {
 
 	protected void addRecordButtonListener() {
 
-		ImageView recording = (ImageView) findViewById(R.id.edit_tool_record);
+		recording = (ImageView) findViewById(R.id.edit_tool_record);
 
 		recording.setClickable(true);
 		recording.setOnClickListener(new OnClickListener() {
@@ -137,7 +143,7 @@ public class EditPageActivity extends MainActivity {
 
 	protected void addPlayButtonListener() {
 
-		ImageView play = (ImageView) findViewById(R.id.edit_tool_play);
+		play = (ImageView) findViewById(R.id.edit_tool_play);
 
 		play.setClickable(true);
 		play.setOnClickListener(new OnClickListener() {
@@ -178,7 +184,7 @@ public class EditPageActivity extends MainActivity {
 
 	protected void addCancelButtonListener() {
 
-		ImageView cancel = (ImageView) findViewById(R.id.edit_tool_cancel);
+		cancel = (ImageView) findViewById(R.id.edit_tool_cancel);
 
 		cancel.setClickable(true);
 		cancel.setOnClickListener(new OnClickListener() {
@@ -203,7 +209,7 @@ public class EditPageActivity extends MainActivity {
 
 	protected void addSaveButtonListener() {
 
-		ImageView save = (ImageView) findViewById(R.id.edit_tool_save);
+		save = (ImageView) findViewById(R.id.edit_tool_save);
 
 		save.setClickable(true);
 		save.setOnClickListener(new OnClickListener() {
@@ -225,7 +231,7 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	private void addAnnotateButtonListener() {
-		ImageView edit = (ImageView) findViewById(R.id.edit_tool_feel);
+		edit = (ImageView) findViewById(R.id.edit_tool_feel);
 
 		edit.setClickable(true);
 		edit.setOnClickListener(new OnClickListener() {
@@ -276,6 +282,7 @@ public class EditPageActivity extends MainActivity {
 	@Override
 	public void onBackPressed() {
 		// Back is pressed, go to page activity page
+		cleanup();
 		finish();
 		goToPageActivity();
 	}
@@ -288,8 +295,6 @@ public class EditPageActivity extends MainActivity {
 
 	@Override
 	public void onDestroy() {
-		cleanup();
-		mTpad.disconnectTPad();
 		if (recordOn && mRecorder != null) {
 			currentPage.stopRecording(mRecorder);
 		}
