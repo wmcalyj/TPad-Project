@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HapticEBook</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="hello_world_new_page">I am new page</string>
+    <string name="hello_world_edit_page">I am edit page</string>
+    <string name="action_settings">Settings</string>
+    <string name="app_intro">       My Touch &amp; Feel \nScience Notebook</string>
+    <string name="header_description">header</string>
+    <string name="footer_description_left">left footer</string>
+    <string name="footer_description_right">right footer</string>
+    <string name="tool_edit_button">tool edit button</string>
+    <string name="tool_new_button">tool new page button</string>
+    <string name="tool_delete_button">tool delete button</string>
+    <string name="page_image">page image slot</string>
+    <string name="edit_tool_feel">edit page feel button</string>
+    <string name="edit_tool_edit">edit page edit button</string>
+    <string name="edit_tool_record">edit page record button</string>
+    <string name="edit_tool_play">edit page play button</string>
+    <string name="edit_tool_save">edit page save button</string>
+    <string name="new_page_camera">new page camera button</string>
+    <string name="image_placeholder">New page image place holder</string>
+    <string name="new_page_save">New page save button</string>
+    <string name="new_page_cancel">Cancel</string>
+    <string name="page_play_audio">Page Play Audio Ico</string>
+    <string name="edit_tool_cancel">Edit page cancel button</string>
+    <string name="student_mode">Student</string>
+    <string name="teacher_mode">Teacher</string>
+    <string name="deleted_image">Deleted</string>
+    <string name="annotate_save">Annotate save</string>
+    <string name="annotate_cancel">Annotate cancel</string>
+    <string name="filter_save">Filter save</string>
+    <string name="filter_cancel">Filter cancel</string>
+    <string name="filter_image">Filter image used as input for haptic</string>
+    <string name="filter_next">Filter next</string>
+    <string name="filter_prev">Filter previous</string>
+    <string name="filter_shown_image">Filter image shown to others</string>
+    <string name="edit_feel_image">haptic image view on edit page</string>
+    <string name="landing_exit">EXIT</string>
+    <string name="page_feel_image">Page Feel Image View</string>
+
+</resources>
