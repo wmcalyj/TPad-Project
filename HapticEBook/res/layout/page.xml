@@ -58,7 +58,7 @@
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/tool_new_button"
                 android:maxHeight="60dp"
-                android:src="@drawable/new_page" />
+                android:src="@drawable/new_photo" />
 
             <!--
                  <TextView

@@ -11,7 +11,7 @@ public class Configuration {
 	public static final boolean USE_GIVEN_INSAMPLESIZE = true;
 	public static final int INSAMPLESIZE = 4;
 
-	public static final boolean HAPTICDISABLED = true;
+	public static final boolean HAPTICDISABLED = false;
 	public static final String APPINTRO_NOHAPTIC = "Science Notebook";
 	public static final String APPINTRO_HAPTIC = "       My Touch & Feel \nScience Notebook";
 
