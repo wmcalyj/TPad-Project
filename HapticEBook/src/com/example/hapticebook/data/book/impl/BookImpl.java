@@ -25,6 +25,7 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	private Page headerAvailable;
 	private Page tailAvailable;
 	private Page current;
+	private Page newlyCreated;
 
 	// This is a int value used to indicate if the image should be compressed
 	private int compressionRate = Configuration.COMPRESSIONRATE;
@@ -50,7 +51,6 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 		tailAvailable = null;
 		current = null;
 		includeDeleted = false;
-
 	}
 
 	@Override
@@ -119,6 +119,10 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 
 	@Override
 	public void addNewPage(Page newPage) {
+		if (newlyCreated != null) {
+			newlyCreated = null;
+		}
+		System.gc();
 		// The book is empty
 		if (this.isEmpty()) {
 			this.current = newPage;
@@ -174,6 +178,7 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	@Override
 	public Page createNewPage(String filePath) {
 		Page newPage = new PageImpl(filePath);
+		newlyCreated = newPage;
 		return newPage;
 	}
 
@@ -217,6 +222,9 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 
 	@Override
 	public Page getCurrentPage() {
+		if (newlyCreated != null) {
+			return newlyCreated;
+		}
 		return this.current;
 	}
 
@@ -283,5 +291,23 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 	public Page createNewPage(Uri fileUri) {
 		Page newPage = new PageImpl(fileUri.getPath());
 		return newPage;
+	}
+
+	@Override
+	public boolean isNewlyTakenImage(Page currentPage) {
+		// TODO Auto-generated method stub
+		if (currentPage == null || this.newlyCreated == null) {
+			return false;
+		}
+		return currentPage.equals(newlyCreated);
+	}
+
+	@Override
+	public void cancelSavingNewImage() {
+		if (newlyCreated != null) {
+			newlyCreated.deleteNewlyTakenImage();
+			newlyCreated = null;
+			saveBook();
+		}
 	}
 }

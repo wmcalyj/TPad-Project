@@ -1,7 +1,5 @@
 package com.example.hapticebook.edit;
 
-import java.io.Serializable;
-
 import com.example.hapticebook.MainActivity;
 import com.example.hapticebook.PageActivity;
 import com.example.hapticebook.R;
@@ -45,23 +43,32 @@ public class EditPageActivity extends MainActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.edit);
 		if (Configuration.HAPTICDISABLED) {
-			edit = (ImageView) findViewById(R.id.edit_tool_feel);
+			if (edit == null) {
+				edit = (ImageView) findViewById(R.id.edit_tool_feel);
+			}
 			edit.setVisibility(View.GONE);
+		} else {
+			if (edit == null) {
+				edit = (ImageView) findViewById(R.id.edit_tool_feel);
+			}
+			edit.setVisibility(View.VISIBLE);
 		}
 		context = this;
 
 		setImage();
-
-		tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
-		tpadView.setTpad(mTpad);
 		addAllButtonListerners();
-		applyFilter();
+		if (!Configuration.HAPTICDISABLED) {
+			tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
+			tpadView.setTpad(mTpad);
+			applyFilter();
+		}
 		finishLoading();
-
 	}
 
 	private void applyFilter() {
-		ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
+		if (edit == null) {
+			edit = (ImageView) findViewById(R.id.edit_tool_feel);
+		}
 		if (filterBmp != null) {
 			filterBmp.recycle();
 			filterBmp = null;
@@ -69,7 +76,7 @@ public class EditPageActivity extends MainActivity {
 		}
 		filterBmp = FilterService.getTPadFilter(getResources(), currentPage, getScreenSize(mImage));
 		if (filterBmp == null) {
-			feel.setImageResource(R.drawable.texture);
+			edit.setImageResource(R.drawable.texture);
 			tpadView.setDataBitmap(getEmptyBitmap());
 			mTpad.turnOff();
 			return;
@@ -78,7 +85,7 @@ public class EditPageActivity extends MainActivity {
 			if (Configuration.DEBUG) {
 				image.setImageBitmap(filterBmp);
 			}
-			feel.setImageResource(R.drawable.touch_active);
+			edit.setImageResource(R.drawable.touch_active);
 		}
 	}
 
@@ -99,10 +106,12 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	private void setImage() {
-		this.currentPage = getMBook().getCurrentPage();
-		mImage = currentPage.getImageBitmap();
+		currentPage = getMBook().getCurrentPage();
 		if (currentPage != null) {
-			image = (ImageView) findViewById(R.id.edit_image);
+			mImage = currentPage.getImageBitmap();
+			if (image == null) {
+				image = (ImageView) findViewById(R.id.edit_image);
+			}
 			image.setImageBitmap(mImage);
 		} else {
 			Log.d("", "currentPage is null");
@@ -173,7 +182,6 @@ public class EditPageActivity extends MainActivity {
 								currentPage.stopPlayingAudio(mp);
 								((ImageView) v).setImageResource(R.drawable.play);
 								playOn = false;
-
 							}
 						});
 					}
@@ -183,8 +191,9 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	protected void addCancelButtonListener() {
-
-		cancel = (ImageView) findViewById(R.id.edit_tool_cancel);
+		if (cancel == null) {
+			cancel = (ImageView) findViewById(R.id.edit_tool_cancel);
+		}
 
 		cancel.setClickable(true);
 		cancel.setOnClickListener(new OnClickListener() {
@@ -196,10 +205,19 @@ public class EditPageActivity extends MainActivity {
 				MainActivity.disableAfterClick(v);
 				currentPage.cancelAudioFile();
 				currentPage.cancelHapticFilter();
-				getMBook().saveBook();
-				LogService.WriteToLog(Action.CANCEL_EDIT,
-						"Cancel editing page " + currentPage.getImageFilePath() + ", go back to pages");
 				Intent intent = new Intent(EditPageActivity.this, PageActivity.class);
+				if (isNewlyTakenImage(currentPage)) {
+					getMBook().cancelSavingNewImage();
+					intent.putExtra(PAGE_ACTIVITY_KEY, CANCEL_SAVING_NEW_PHOTO_FROM_EDIT);
+					LogService.WriteToLog(Action.CANCEL_EDIT, "Cancel saving newly taken image, go back to pages");
+				} else {
+					if (!Configuration.HAPTICDISABLED) {
+						getMBook().saveBook();
+						LogService.WriteToLog(Action.CANCEL_EDIT,
+								"Cancel editing page " + currentPage.getImageFilePath() + ", go back to pages");
+					}
+				}
+
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				cleanup();
 				startActivity(intent);
@@ -210,29 +228,36 @@ public class EditPageActivity extends MainActivity {
 	protected void addSaveButtonListener() {
 
 		save = (ImageView) findViewById(R.id.edit_tool_save);
-
 		save.setClickable(true);
 		save.setOnClickListener(new OnClickListener() {
-
 			@Override
 			public void onClick(View v) {
 				disableRecording();
 				disablePlayingAudio();
 				MainActivity.disableAfterClick(v);
-				LogService.WriteToLog(Action.SAVE_EDIT, "Save edited file " + currentPage.getImageFilePath());
-				currentPage.saveAudioFile();
-				getMBook().saveBook();
 				Intent intent = new Intent(EditPageActivity.this, PageActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				cleanup();
+				if (isNewlyTakenImage(currentPage)) {
+					getMBook().addNewPage(currentPage);
+					intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
+					LogService.WriteToLog(Action.SAVE_EDIT, "Save newly taken image " + currentPage.getImageFilePath());
+				} else {
+					intent.removeExtra(PAGE_ACTIVITY_KEY);
+					LogService.WriteToLog(Action.SAVE_EDIT, "Save edited file " + currentPage.getImageFilePath());
+				}
+				currentPage.saveAudioFile();
+				getMBook().saveBook();
+
 				startActivity(intent);
+				cleanup();
 			}
 		});
 	}
 
 	private void addAnnotateButtonListener() {
-		edit = (ImageView) findViewById(R.id.edit_tool_feel);
-
+		if (edit == null) {
+			edit = (ImageView) findViewById(R.id.edit_tool_feel);
+		}
 		edit.setClickable(true);
 		edit.setOnClickListener(new OnClickListener() {
 
@@ -241,7 +266,6 @@ public class EditPageActivity extends MainActivity {
 				disableRecording();
 				disablePlayingAudio();
 				Intent intent = new Intent(EditPageActivity.this, FilterActivity.class);
-				intent.putExtra("currentPage", (Serializable) currentPage);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				cleanup();
 				startActivity(intent);
@@ -251,32 +275,13 @@ public class EditPageActivity extends MainActivity {
 
 	@Override
 	public void onNewIntent(Intent intent) {
-		if (intent != null)
+		if (intent != null) {
 			setIntent(intent);
+		}
 		checkImage();
-		applyFilter();
-
-		// String chosenFilterFilePath = intent
-		// .getStringExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath");
-		// if (chosenFilterFilePath != null) {
-		// tpadView.setDataBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
-		// if (Configuration.DEBUG) {
-		// image.setImageBitmap(BitmapFactory.decodeFile(chosenFilterFilePath));
-		// }
-		// ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
-		// feel.setImageResource(R.drawable.touch_orange);
-		// } else {
-		// HapticFilterEnum filterEnum = (HapticFilterEnum) intent
-		// .getSerializableExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterEnum");
-		// if (filterEnum != null) {
-		// applyFilter();
-		// } else {
-		// ImageView feel = (ImageView) findViewById(R.id.edit_tool_feel);
-		// feel.setImageResource(R.drawable.touch);
-		// tpadView.setDataBitmap(super.getEmptyBitmap());
-		// mTpad.turnOff();
-		// }
-		// }
+		if (!Configuration.HAPTICDISABLED) {
+			applyFilter();
+		}
 	}
 
 	@Override
@@ -350,8 +355,8 @@ public class EditPageActivity extends MainActivity {
 
 	private void checkImage() {
 		if (mImage == null || mImage.isRecycled()) {
-			mImage = this.currentPage.getImageBitmap();
+			mImage = currentPage.getImageBitmap();
+			image.setImageBitmap(mImage);
 		}
-		image.setImageBitmap(mImage);
 	}
 }

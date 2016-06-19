@@ -54,7 +54,8 @@ public class PageImpl implements Serializable, Page {
 	private static final String root = Configuration.ROOT_PATH + "/hapticEBook/";
 	private static final File dir = new File(root, "recordings");
 
-	private static Bitmap imageBmp;
+	// private static Bitmap imageBmp;
+	private Bitmap imageBmp;
 
 	@SuppressWarnings("unused")
 	private PageImpl() {
@@ -343,5 +344,31 @@ public class PageImpl implements Serializable, Page {
 	@Override
 	public boolean isUsingWallPaper() {
 		return this.hapticFilter.isWallPaper();
+	}
+
+	@Override
+	public void deleteNewlyTakenImage() {
+		String fileName = this.getImageFilePath();
+		File newlyTakenImage = new File(fileName);
+		if (newlyTakenImage != null) {
+			newlyTakenImage.delete();
+		}
+		if (mRecordFile != null) {
+			mRecordFile.delete();
+		}
+		if (this.prevAvailablePage != null) {
+			this.prevAvailablePage.setNextAvailablePage(this.nextAvailablePage);
+		}
+		if (this.nextAvailablePage != null) {
+			this.nextAvailablePage.setPrevAvailablePage(this.prevAvailablePage);
+		}
+		this.prevAvailablePage = null;
+		this.nextAvailablePage = null;
+		this.available = false;
+		if (imageBmp != null) {
+			imageBmp.recycle();
+			imageBmp = null;
+		}
+		System.gc();
 	}
 }

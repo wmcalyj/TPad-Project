@@ -51,6 +51,7 @@ public class PageActivity extends MainActivity {
 	private Page currentPage;
 	private boolean audioOn = false;
 	private MediaPlayer mPlayer;
+	@SuppressWarnings("unused")
 	private static final String TAG = "PageActivity";
 
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
@@ -80,18 +81,7 @@ public class PageActivity extends MainActivity {
 		if (this.isBookEmpty()) {
 			showInstructionForEmptyBook();
 			playInstructionForEmptyBookAudio();
-			// If book is empty, go to camera
-			// create Intent to take a picture and return control to the
-			// calling application
-			Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-			// create a file to save the image
-			fileUri = getOutputMediaFileUri();
-			// tell camera to save iamge to the given fileUri
-			intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-			// start the image capture Intent
-			// Result is in onActivityResult function
-			startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+			startCameraActivity();
 		} else {
 			// Else, go to the first page or last page,depending on the flag
 			Bundle b = getIntent().getExtras();
@@ -102,6 +92,7 @@ public class PageActivity extends MainActivity {
 				currentPage = book.goToFirstPage();
 				Log.d("", "Page Activity, go to first page");
 			}
+			// currentPage = book.getCurrentPage();
 
 			// loading = (ProgressBar) findViewById(R.id.page_loading);
 			// Uri iamgeURI = currentPage.getImageUri();
@@ -251,26 +242,21 @@ public class PageActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				disablePlaying();
-				// create Intent to take a picture and return control to the
-				// calling application
-				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-				// Intent intent = new Intent(PageActivity.this,
-				// NewPageActivity.class);
-				// startActivity(intent);
-
-				fileUri = getOutputMediaFileUri(); // create a
-													// file
-				// to save the image
-				intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the
-																	// image
-				// file
-				// // name
-
-				// start the image capture Intent
-				startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+				startCameraActivity();
 
 			}
 		});
+	}
+
+	protected void startCameraActivity() {
+		// create Intent to take a picture and return control to the
+		// calling application
+		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		fileUri = getOutputMediaFileUri(); // create a file to save the image
+		// set the image file name
+		intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+		// start the image capture Intent
+		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 
 	/** Create a file Uri for saving an image or video */
@@ -380,14 +366,6 @@ public class PageActivity extends MainActivity {
 		if (this.currentPage == null) {
 			return;
 		}
-		// Set the visibility of TextView (deleted)
-		// if (!this.currentPage.isAvailable()) {
-		// TextView imageDeleted = (TextView) findViewById(R.id.deleted);
-		// imageDeleted.setVisibility(View.VISIBLE);
-		// } else {
-		// TextView imageDeleted = (TextView) findViewById(R.id.deleted);
-		// imageDeleted.setVisibility(View.INVISIBLE);
-		// }
 
 		// Set the left footer and right footer (go to previous/next page)
 		leftFooter = (ImageView) findViewById(R.id.page_footer_left);
@@ -499,16 +477,19 @@ public class PageActivity extends MainActivity {
 		super.onResume();
 		int newPageActivityFlag = getIntent().getIntExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_DEFAULT);
 		switch (newPageActivityFlag) {
-
 		case PAGE_ACTIVITY_NEW_PHOTO:
 			currentPage = book.goToLastPage();
 			refresh();
 			addHeaderButtonListeners();
 			break;
+		case CANCEL_SAVING_NEW_PHOTO_FROM_EDIT:
+			if (currentPage == null) {
+				goToLandingPage();
+			}
+			break;
 		case PAGE_ACTIVITY_DEFAULT:
 		default:
 			break;
-
 		}
 	}
 
@@ -522,12 +503,15 @@ public class PageActivity extends MainActivity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+		String imageFilePath = null;
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 			if (resultCode == RESULT_OK) {
 				try {
 					Bitmap captureBmp = Media.getBitmap(getContentResolver(), fileUri);
 					OutputStream outputStream = null;
 					File imageFile = new File(fileUri.getPath());
+					imageFilePath = imageFile.getAbsolutePath();
+					book.createNewPage(imageFilePath);
 					try {
 						outputStream = new FileOutputStream(imageFile);
 						captureBmp.compress(Bitmap.CompressFormat.JPEG, this.book.getCompressionRate(), outputStream);
@@ -543,14 +527,26 @@ public class PageActivity extends MainActivity {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				// Save new page
-				saveAction();
+				// If this is a new page, we don't save them now, save them
+				// later according to the new requirement
+				// saveAction();
 				// Move to last page
-				currentPage = book.goToLastPage();
+				// currentPage = book.goToLastPage();
 				// ImageView iv = (ImageView) findViewById(R.id.page_image);
 				// iv.setImageBitmap(imageTaken);
-				refresh();
-				getIntent().putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
+				// refresh();
+				// getIntent().putExtra(PAGE_ACTIVITY_KEY,
+				// PAGE_ACTIVITY_NEW_PHOTO);
+
+				// New page, go to edit page
+				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
+				// intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				// intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
+				//
+				// intent.putExtra(Configuration.IntentExtraValue.NewImagePath,
+				// imageFilePath);
+				// cleanup();
+				startActivity(intent);
 
 			} else if (resultCode == RESULT_CANCELED) {
 				if (getMBook().isEmpty()) {

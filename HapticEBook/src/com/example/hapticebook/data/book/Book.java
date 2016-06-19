@@ -49,4 +49,8 @@ public interface Book {
 	public Page createNewPage(Uri fileUri);
 
 	Page createNewPage(String filePath);
+
+	public boolean isNewlyTakenImage(Page currentPage);
+
+	public void cancelSavingNewImage();
 }

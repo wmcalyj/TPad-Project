@@ -66,6 +66,7 @@ public class FilterGenerator {
 		return filter;
 	}
 
+	@SuppressWarnings("unused")
 	@Deprecated
 	// We no longer want to use noise filter
 	private static Bitmap getNoiseFilterBitmap(Bitmap mImage, Mat mGray, Mat mRgba, Mat mIntermediateMat) {

@@ -33,6 +33,12 @@ public interface Page {
 	public void delete();
 
 	/**
+	 * delete current page and maintain status of previous page and next page
+	 * accordingly
+	 */
+	public void deleteNewlyTakenImage();
+
+	/**
 	 * 
 	 * @param prevPage
 	 *            set previous page

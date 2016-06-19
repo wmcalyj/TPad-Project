@@ -13,6 +13,7 @@ import java.io.StreamCorruptedException;
 import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.crash.CustomExceptionHandler;
 import com.example.hapticebook.data.book.Book;
+import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.data.book.impl.BookImpl;
 import com.example.hapticebook.log.Action;
 import com.example.hapticebook.log.LogService;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity {
 	public static final String FILE_NAME = "book.srl";
 	public static final String PAGE_ACTIVITY_KEY = "PAGE_ACTIVITY_KEY";
 	public static final int PAGE_ACTIVITY_NEW_PHOTO = 1;
+	public static final int CANCEL_SAVING_NEW_PHOTO_FROM_EDIT = 2;
 	public static final int PAGE_ACTIVITY_DEFAULT = -1;
 	// To get access to mBook, use getMBook
 	private static Book mBook = null;
@@ -59,7 +61,9 @@ public class MainActivity extends Activity {
 		if (!(CustomExceptionHandler.class.isAssignableFrom(Thread.getDefaultUncaughtExceptionHandler().getClass()))) {
 			Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler());
 		}
-		mTpad = new TPadImpl(this);
+		if (mTpad == null) {
+			mTpad = new TPadImpl(this);
+		}
 		super.onCreate(savedInstanceState);
 		// setContentView(R.layout.landing);
 		if (mBook == null) {
@@ -161,7 +165,6 @@ public class MainActivity extends Activity {
 			} catch (StreamCorruptedException e) {
 				e.printStackTrace();
 			} catch (FileNotFoundException e) {
-
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -264,6 +267,10 @@ public class MainActivity extends Activity {
 		if (l3 != null) {
 			l3.setVisibility(View.GONE);
 		}
+	}
+
+	protected boolean isNewlyTakenImage(Page currentPage) {
+		return getMBook().isNewlyTakenImage(currentPage);
 	}
 
 	@Override
