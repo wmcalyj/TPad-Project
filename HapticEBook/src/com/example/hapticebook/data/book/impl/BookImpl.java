@@ -119,10 +119,6 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 
 	@Override
 	public void addNewPage(Page newPage) {
-		if (newlyCreated != null) {
-			newlyCreated = null;
-		}
-		System.gc();
 		// The book is empty
 		if (this.isEmpty()) {
 			this.current = newPage;
@@ -152,7 +148,9 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 			this.tail = newPage;
 			this.tailAvailable = newPage;
 		}
-
+		if (newlyCreated != null) {
+			newlyCreated = null;
+		}
 		this.saveBook();
 
 	}

@@ -19,7 +19,7 @@ public class CustomExceptionHandler implements UncaughtExceptionHandler {
 	private String localPath;
 
 	private static final String root = Configuration.ROOT_PATH + "/hapticEBook/";
-	private static final File dir = new File(root, "reports");
+	private static final File dir = new File(root + "reports");
 
 	/*
 	 * if any of the parameters is null, the respective functionality will not

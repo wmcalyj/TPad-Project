@@ -143,7 +143,8 @@ public class MainActivity extends Activity {
 		ObjectInputStream input;
 		String filename = FILE_NAME;
 		String root = Configuration.ROOT_PATH;
-		File dir = new File(root, "hapticEBook/");
+		String folder = root + "/hapticEBook";
+		File dir = new File(folder);
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}

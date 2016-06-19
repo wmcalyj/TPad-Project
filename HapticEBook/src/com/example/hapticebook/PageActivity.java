@@ -19,7 +19,12 @@ import com.example.hapticebook.log.LogService;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.hardware.SensorManager;
+import android.media.ExifInterface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +33,7 @@ import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -68,10 +74,23 @@ public class PageActivity extends MainActivity {
 	private FrictionMapView tpadView;
 	// private ProgressBar loading;
 
+	private long captureTime;
+	OrientationEventListener mOrientationListener;
+	int rotation = -1;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.page);
+		mOrientationListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
+			@Override
+			public void onOrientationChanged(int orientation) {
+				Log.v("Orientation", "Orientation changed to " + orientation);
+				if (rotation != -1) {
+					rotation = orientation;
+				}
+			}
+		};
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
@@ -251,11 +270,17 @@ public class PageActivity extends MainActivity {
 	protected void startCameraActivity() {
 		// create Intent to take a picture and return control to the
 		// calling application
+		if (mOrientationListener.canDetectOrientation() == true) {
+			Log.v("Orientation", "Can detect orientation");
+			mOrientationListener.enable();
+		}
 		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		fileUri = getOutputMediaFileUri(); // create a file to save the image
 		// set the image file name
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+		intent.putExtra(MediaStore.EXTRA_SCREEN_ORIENTATION, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		// start the image capture Intent
+		captureTime = System.currentTimeMillis();
 		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 
@@ -340,7 +365,6 @@ public class PageActivity extends MainActivity {
 				Page currentPage = book.getCurrentPage();
 				LogService.WriteToLog(Action.EDIT, "Edit page - " + currentPage.getImageFilePath());
 				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
-				// intent.putExtra("currentPage", (Serializable) currentPage);
 				cleanup();
 				startActivity(intent);
 			}
@@ -503,11 +527,15 @@ public class PageActivity extends MainActivity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+		if (mOrientationListener != null) {
+			mOrientationListener.disable();
+		}
 		String imageFilePath = null;
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 			if (resultCode == RESULT_OK) {
 				try {
 					Bitmap captureBmp = Media.getBitmap(getContentResolver(), fileUri);
+					// captureBmp = rotateImageIfNeeded(captureBmp);
 					OutputStream outputStream = null;
 					File imageFile = new File(fileUri.getPath());
 					imageFilePath = imageFile.getAbsolutePath();
@@ -521,6 +549,7 @@ public class PageActivity extends MainActivity {
 					} catch (IOException e) {
 						Log.d("", "Failed to compress and write to file: " + e.getMessage());
 					}
+					captureBmp = rotateImageIfNeeded(imageFilePath, captureBmp);
 					imageTaken = captureBmp;
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
@@ -540,12 +569,9 @@ public class PageActivity extends MainActivity {
 
 				// New page, go to edit page
 				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
-				// intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				// intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
-				//
-				// intent.putExtra(Configuration.IntentExtraValue.NewImagePath,
-				// imageFilePath);
-				// cleanup();
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				cleanup();
+				finish();
 				startActivity(intent);
 
 			} else if (resultCode == RESULT_CANCELED) {
@@ -567,6 +593,107 @@ public class PageActivity extends MainActivity {
 				}
 			}
 		}
+	}
+
+	private Bitmap rotateImageIfNeeded(String imgFilePath, Bitmap captureBmp) {
+		// This is a simple way to check if the image is landscape
+		// In the future after upgrade to Android 5.0, we may want to actually
+		// use exif
+		// Exif info is wrong for KitKat due to known bug from Android
+		// http://stackoverflow.com/questions/8450539/images-taken-with-action-image-capture-always-returns-1-for-exifinterface-tag-or/8864367#8864367
+		int rotation = -1;
+		long fileSize = new File(imgFilePath).length();
+
+		Cursor mediaCursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+				new String[] { MediaStore.Images.ImageColumns.ORIENTATION, MediaStore.MediaColumns.SIZE },
+				MediaStore.MediaColumns.DATE_ADDED + ">=?", new String[] { String.valueOf(captureTime / 1000 - 1) },
+				MediaStore.MediaColumns.DATE_ADDED + " desc");
+
+		if (mediaCursor != null && captureTime != 0 && mediaCursor.getCount() != 0) {
+			while (mediaCursor.moveToNext()) {
+				long size = mediaCursor.getLong(1);
+				// Extra check to make sure that we are getting the orientation
+				// from the proper file
+				if (size == fileSize) {
+					rotation = mediaCursor.getInt(0);
+					break;
+				}
+			}
+		}
+		if (rotation == -1) {
+			rotation = getExifOrientationAttribute(imgFilePath);
+		}
+		if (rotation == 0) {
+			// Check again
+			return rotateImageIfNeeded(captureBmp);
+		}
+		Matrix m = new Matrix();
+		if (rotation != 0) {
+			if (rotation > 0 && rotation <= 90) {
+				m.postRotate(90);
+			} else if (rotation > 90 && rotation <= 180) {
+				m.postRotate(180);
+			} else if (rotation > 180 && rotation <= 270) {
+				m.postRotate(270);
+			}
+		}
+		Bitmap rotatedBmp = Bitmap.createBitmap(captureBmp, 0, 0, captureBmp.getWidth(), captureBmp.getHeight(), m,
+				true);
+		if (!rotatedBmp.equals(captureBmp)) {
+			captureBmp.recycle();
+			captureBmp = null;
+			System.gc();
+		}
+
+		// Write rotated bmp to file
+		File imageFile = new File(imgFilePath);
+		try {
+			OutputStream outputStream = new FileOutputStream(imageFile);
+			captureBmp.compress(Bitmap.CompressFormat.JPEG, this.book.getCompressionRate(), outputStream);
+			// picture.recycle();
+			outputStream.flush();
+			outputStream.close();
+		} catch (IOException e) {
+			Log.d("", "Failed to compress and write to file: " + e.getMessage());
+			return captureBmp;
+		}
+		return rotatedBmp;
+
+	}
+
+	private int getExifOrientationAttribute(String imgFilePath) {
+		ExifInterface exif;
+		try {
+			exif = new ExifInterface(imgFilePath);
+			return exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ExifInterface.ORIENTATION_UNDEFINED;
+	}
+
+	private Bitmap rotateImageIfNeeded(Bitmap bmp) {
+		// This is a simple way to check if the image is landscape
+		// In the future after upgrade to Android 5.0, we may want to actually
+		// use exif
+		// Exif info is wrong for KitKat due to known bug from Android
+		// http://stackoverflow.com/questions/8450539/images-taken-with-action-image-capture-always-returns-1-for-exifinterface-tag-or/8864367#8864367
+
+		if (bmp != null && bmp.getWidth() > bmp.getHeight()) {
+			Matrix matrix = new Matrix();
+			matrix.postRotate(90);
+			Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+			if (!rotatedBmp.equals(bmp)) {
+				bmp.recycle();
+				bmp = null;
+				System.gc();
+			}
+			return rotatedBmp;
+		} else {
+			return bmp;
+		}
+
 	}
 
 	public void saveAction() {

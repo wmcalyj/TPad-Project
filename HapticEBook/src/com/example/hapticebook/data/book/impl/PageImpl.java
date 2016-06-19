@@ -54,8 +54,11 @@ public class PageImpl implements Serializable, Page {
 	private static final String root = Configuration.ROOT_PATH + "/hapticEBook/";
 	private static final File dir = new File(root, "recordings");
 
-	// private static Bitmap imageBmp;
-	private Bitmap imageBmp;
+	// Be very careful, this is a static variable which means it's
+	// shared across all instance. Also, bitmap CANNOT be written into a file
+	// Remember to clean it before saving.
+	private static Bitmap imageBmp;
+	// private Bitmap imageBmp;
 
 	@SuppressWarnings("unused")
 	private PageImpl() {
@@ -279,6 +282,11 @@ public class PageImpl implements Serializable, Page {
 
 	@Override
 	public Bitmap getImageBitmap() {
+		if (imageBmp != null) {
+			imageBmp.recycle();
+			imageBmp = null;
+			System.gc();
+		}
 		if (imageBmp == null || imageBmp.isRecycled()) {
 			BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
 			bmpFactoryOptions.inSampleSize = 2;
@@ -351,10 +359,10 @@ public class PageImpl implements Serializable, Page {
 		String fileName = this.getImageFilePath();
 		File newlyTakenImage = new File(fileName);
 		if (newlyTakenImage != null) {
-			newlyTakenImage.delete();
+			newlyTakenImage.deleteOnExit();
 		}
 		if (mRecordFile != null) {
-			mRecordFile.delete();
+			mRecordFile.deleteOnExit();
 		}
 		if (this.prevAvailablePage != null) {
 			this.prevAvailablePage.setNextAvailablePage(this.nextAvailablePage);

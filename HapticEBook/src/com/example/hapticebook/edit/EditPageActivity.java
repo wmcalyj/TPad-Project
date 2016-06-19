@@ -246,8 +246,9 @@ public class EditPageActivity extends MainActivity {
 					LogService.WriteToLog(Action.SAVE_EDIT, "Save edited file " + currentPage.getImageFilePath());
 				}
 				currentPage.saveAudioFile();
-				getMBook().saveBook();
-
+				if (!getMBook().saveBook()) {
+					Log.e(TAG, "Failed to save book due to");
+				}
 				startActivity(intent);
 				cleanup();
 			}
