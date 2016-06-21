@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 import nxr.tpad.lib.views.FrictionMapView;
@@ -61,6 +62,9 @@ public class EditPageActivity extends MainActivity {
 			tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
 			tpadView.setTpad(mTpad);
 			applyFilter();
+		} else {
+			tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
+			((FrameLayout) tpadView.getParent()).removeView(tpadView);
 		}
 		finishLoading();
 	}

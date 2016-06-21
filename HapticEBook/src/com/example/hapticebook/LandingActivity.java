@@ -87,6 +87,8 @@ public class LandingActivity extends MainActivity {
 				loading.setVisibility(View.VISIBLE);
 				Intent intent;
 				intent = new Intent(LandingActivity.this, PageActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	
+				intent.putExtra(Configuration.IntentExtraValue.LandingEntry, true);
 				startActivity(intent);
 			}
 		});

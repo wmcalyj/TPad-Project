@@ -76,7 +76,7 @@ public class PageActivity extends MainActivity {
 
 	private long captureTime;
 	OrientationEventListener mOrientationListener;
-	int rotation = -1;
+	int rotation = 0, count = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +87,8 @@ public class PageActivity extends MainActivity {
 			public void onOrientationChanged(int orientation) {
 				Log.v("Orientation", "Orientation changed to " + orientation);
 				if (rotation != -1) {
-					rotation = orientation;
+					rotation += orientation;
+					count++;
 				}
 			}
 		};
@@ -95,21 +96,33 @@ public class PageActivity extends MainActivity {
 			dir.mkdirs();
 		}
 		image = (ImageView) findViewById(R.id.page_image);
-		tpadView = (FrictionMapView) findViewById(R.id.page_feel_image);
-		tpadView.setTpad(mTpad);
+		if (!Configuration.HAPTICDISABLED) {
+			tpadView = (FrictionMapView) findViewById(R.id.page_feel_image);
+			tpadView.setTpad(mTpad);
+		} else {
+			tpadView = (FrictionMapView) findViewById(R.id.page_feel_image);
+			((RelativeLayout) tpadView.getParent()).removeView(tpadView);
+		}
 		if (this.isBookEmpty()) {
 			showInstructionForEmptyBook();
 			playInstructionForEmptyBookAudio();
 			startCameraActivity();
 		} else {
-			// Else, go to the first page or last page,depending on the flag
 			Bundle b = getIntent().getExtras();
 			if (b != null && b.getInt(PAGE_ACTIVITY_KEY) == PAGE_ACTIVITY_NEW_PHOTO) {
 				currentPage = book.goToLastPage();
 				Log.d("", "Page Activity, go to last page");
 			} else {
-				currentPage = book.goToFirstPage();
-				Log.d("", "Page Activity, go to first page");
+				if (b.getBoolean(Configuration.IntentExtraValue.LandingEntry)) {
+					currentPage = book.goToFirstPage();
+					Log.d("", "Page Activity, go to first page");
+				} else {
+					currentPage = book.getCurrentPage();
+					if (currentPage == null) {
+						currentPage = book.goToFirstPage();
+						Log.d("", "Page Activity, go to first page");
+					}
+				}
 			}
 			// currentPage = book.getCurrentPage();
 
@@ -418,7 +431,9 @@ public class PageActivity extends MainActivity {
 		// Uri imageUri = currentPage.getImageUri();
 		mImage = currentPage.getImageBitmap();
 		image = (ImageView) findViewById(R.id.page_image);
-		setFrictionMapView();
+		if (!Configuration.HAPTICDISABLED) {
+			setFrictionMapView();
+		}
 		image.setImageBitmap(mImage);
 	}
 
@@ -535,7 +550,7 @@ public class PageActivity extends MainActivity {
 			if (resultCode == RESULT_OK) {
 				try {
 					Bitmap captureBmp = Media.getBitmap(getContentResolver(), fileUri);
-					// captureBmp = rotateImageIfNeeded(captureBmp);
+					captureBmp = rotateImageIfNeeded(captureBmp);
 					OutputStream outputStream = null;
 					File imageFile = new File(fileUri.getPath());
 					imageFilePath = imageFile.getAbsolutePath();
@@ -549,7 +564,8 @@ public class PageActivity extends MainActivity {
 					} catch (IOException e) {
 						Log.d("", "Failed to compress and write to file: " + e.getMessage());
 					}
-					captureBmp = rotateImageIfNeeded(imageFilePath, captureBmp);
+					// captureBmp = rotateImageIfNeeded(imageFilePath,
+					// captureBmp);
 					imageTaken = captureBmp;
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
@@ -676,19 +692,27 @@ public class PageActivity extends MainActivity {
 	private Bitmap rotateImageIfNeeded(Bitmap bmp) {
 		// This is a simple way to check if the image is landscape
 		// In the future after upgrade to Android 5.0, we may want to actually
-		// use exif
-		// Exif info is wrong for KitKat due to known bug from Android
+		// use exif. Exif info is wrong for KitKat due to known bug from Android
 		// http://stackoverflow.com/questions/8450539/images-taken-with-action-image-capture-always-returns-1-for-exifinterface-tag-or/8864367#8864367
 
 		if (bmp != null && bmp.getWidth() > bmp.getHeight()) {
 			Matrix matrix = new Matrix();
-			matrix.postRotate(90);
+			double rotate = rotation / count;
+			if (rotate > 0 && rotate <= 180) {
+				matrix.postRotate(270);
+			}
+
+			if (rotate > 180 && rotate <= 360) {
+				matrix.postRotate(90);
+			}
 			Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
 			if (!rotatedBmp.equals(bmp)) {
 				bmp.recycle();
 				bmp = null;
 				System.gc();
 			}
+			rotation = 0;
+			count = 0;
 			return rotatedBmp;
 		} else {
 			return bmp;

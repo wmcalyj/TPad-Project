@@ -11,7 +11,7 @@ public class Configuration {
 	public static final boolean USE_GIVEN_INSAMPLESIZE = true;
 	public static final int INSAMPLESIZE = 4;
 
-	public static final boolean HAPTICDISABLED = false;
+	public static boolean HAPTICDISABLED = false;
 	public static final String APPINTRO_NOHAPTIC = "Science Notebook";
 	public static final String APPINTRO_HAPTIC = "       My Touch & Feel \nScience Notebook";
 
@@ -23,6 +23,7 @@ public class Configuration {
 
 	public class IntentExtraValue {
 		public static final String NewImagePath = "NEW_IMAGE_PATH";
+		public static final String LandingEntry = "ENTER_FROM_LANDING";
 	}
 
 	public static String EMPTYBOOKINSTRUCTION = "Create your science notebook by taking a photo.\nTap anywhere on the screen to take the photo.";

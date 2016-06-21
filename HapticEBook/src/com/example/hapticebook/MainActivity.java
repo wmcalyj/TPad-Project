@@ -1,10 +1,12 @@
 package com.example.hapticebook;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
@@ -61,8 +63,10 @@ public class MainActivity extends Activity {
 		if (!(CustomExceptionHandler.class.isAssignableFrom(Thread.getDefaultUncaughtExceptionHandler().getClass()))) {
 			Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler());
 		}
-		if (mTpad == null) {
-			mTpad = new TPadImpl(this);
+		if (!Configuration.HAPTICDISABLED) {
+			if (mTpad == null) {
+				mTpad = new TPadImpl(this);
+			}
 		}
 		super.onCreate(savedInstanceState);
 		// setContentView(R.layout.landing);
@@ -140,6 +144,7 @@ public class MainActivity extends Activity {
 	}
 
 	private Book loadBook() {
+		readAppVersionFromFile();
 		ObjectInputStream input;
 		String filename = FILE_NAME;
 		String root = Configuration.ROOT_PATH;
@@ -156,7 +161,7 @@ public class MainActivity extends Activity {
 			mBook.saveBook();
 		} else {
 			try {
-				input = new ObjectInputStream(new FileInputStream(new File(dir, filename)));
+				input = new ObjectInputStream(new FileInputStream(book));
 				mBook = (Book) input.readObject();
 				if (mBook.isEmpty()) {
 					Log.d("", "Book is empty");
@@ -233,13 +238,16 @@ public class MainActivity extends Activity {
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
 		if (getClass().isAssignableFrom(MainActivity.class)) {
 			Log.i("QUIT", "Quit app");
+			if (mTpad != null) {
+				mTpad.disconnectTPad();
+			}
 			LogService.WriteToLog(Action.CLOSE, "Quit App");
 		} else {
 			Log.i("QUIT", "Calling from " + getClass().getName());
 		}
+		super.onDestroy();
 	}
 
 	@Override
@@ -272,6 +280,66 @@ public class MainActivity extends Activity {
 
 	protected boolean isNewlyTakenImage(Page currentPage) {
 		return getMBook().isNewlyTakenImage(currentPage);
+	}
+
+	private void readAppVersionFromFile() {
+		String filename = "appversion.txt";
+		String root = Configuration.ROOT_PATH;
+		File dir = new File(root);
+		if (!dir.exists()) {
+			// Use the default value in Configuration
+			return;
+		}
+		File appVersion = new File(dir, filename);
+		if (!appVersion.exists()) {
+			// Use the default value in Configuration
+			return;
+		} else {
+			FileInputStream inputStream;
+			BufferedReader bufferedReader;
+			InputStreamReader inputStreamReader;
+
+			try {
+				inputStream = new FileInputStream(appVersion);
+				if (inputStream != null) {
+					inputStreamReader = new InputStreamReader(inputStream);
+					bufferedReader = new BufferedReader(inputStreamReader);
+					String receiveString = bufferedReader.readLine();
+					if (receiveString == null || receiveString.isEmpty()) {
+						// Use the default value in Configuration
+						inputStream.close();
+						inputStreamReader.close();
+						bufferedReader.close();
+						return;
+					} else {
+						try {
+							int i = Integer.parseInt(receiveString);
+							if (i == 1) {
+								inputStream.close();
+								inputStreamReader.close();
+								bufferedReader.close();
+								return;
+							} else {
+								// If there is a number set in appversion.txt,
+								// Switch to HapticDisabled version;
+								Configuration.HAPTICDISABLED = true;
+							}
+						} catch (NumberFormatException e) {
+							inputStream.close();
+							inputStreamReader.close();
+							bufferedReader.close();
+							return;
+						}
+					}
+				}
+			} catch (StreamCorruptedException e) {
+				e.printStackTrace();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
