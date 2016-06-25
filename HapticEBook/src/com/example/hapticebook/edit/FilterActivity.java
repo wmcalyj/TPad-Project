@@ -14,11 +14,14 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import com.example.hapticebook.MainActivity;
+import com.example.hapticebook.PageActivity;
 import com.example.hapticebook.R;
 import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.data.HapticFilterEnum;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.filterservice.impl.FilterService;
+import com.example.hapticebook.log.Action;
+import com.example.hapticebook.log.LogService;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -30,6 +33,7 @@ import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import nxr.tpad.lib.TPad;
 import nxr.tpad.lib.TPadImpl;
 import nxr.tpad.lib.views.FrictionMapView;
@@ -125,6 +129,9 @@ public class FilterActivity extends MainActivity {
 		loading = (ProgressBar) findViewById(R.id.filter_loading);
 		finishLoading();
 		loading.bringToFront();
+		if (isNewlyTakenImage(currentPage)) {
+			Toast.makeText(this, "Which texture goes with this photo?", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	private void addToolSet() {
@@ -143,18 +150,34 @@ public class FilterActivity extends MainActivity {
 			@Override
 			public void onClick(View v) {
 				MainActivity.disableAfterClick(v);
-				Intent intent = new Intent(FilterActivity.this, EditPageActivity.class);
-				if (filter != null) {
-					intent.putExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath",
-							filterFile.getAbsolutePath());
+				Intent intent;
+				if (isNewlyTakenImage(currentPage)) {
+					getMBook().cancelSavingNewImage();
+					intent = new Intent(FilterActivity.this, PageActivity.class);
+					intent.putExtra(PAGE_ACTIVITY_KEY, CANCEL_SAVING_NEW_PHOTO_FROM_EDIT);
+					LogService.WriteToLog(Action.CANCEL_EDIT, "Cancel saving newly taken image, go back to pages");
 				} else {
-					intent.removeExtra("ChosenFilterFilePath");
+					intent = new Intent(FilterActivity.this, EditPageActivity.class);
+					if (filter != null) {
+						intent.putExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath",
+								filterFile.getAbsolutePath());
+					} else {
+						intent.removeExtra("ChosenFilterFilePath");
+					}
 				}
-				// intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				cleanup();
 				startActivity(intent);
 			}
 		});
+	}
+
+	@Override
+	public void onNewIntent(Intent intent) {
+		if (intent != null) {
+			setIntent(intent);
+		}
 	}
 
 	private void cleanup() {
@@ -180,8 +203,8 @@ public class FilterActivity extends MainActivity {
 		}
 		mLoaderCallback = null;
 		filters = null;
-		finish();
 		System.gc();
+		finish();
 	}
 
 	private void addSaveListener() {
@@ -196,8 +219,15 @@ public class FilterActivity extends MainActivity {
 				HapticFilterEnum currentFilter = filters.get(current);
 				currentPage.setHapticFilter(currentFilter);
 				currentPage.saveHapticFilter(filterFilePath);
-				getMBook().saveBook();
 				Intent intent = new Intent(FilterActivity.this, EditPageActivity.class);
+				if (isNewlyTakenImage(currentPage)) {
+					getMBook().addNewPage(currentPage);
+					// Newly Taken Image, go to RecordingActivity Page
+					intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
+					intent.putExtra(FILTER_ACTIVITY_NEW_IMAGE_SAVED, true);
+					LogService.WriteToLog(Action.SAVE_EDIT, "Save newly taken image " + currentPage.getImageFilePath());
+				}
+				getMBook().saveBook();
 				if (filter != null) {
 					if (!currentFilter.isWallPaper()) {
 						OutputStream outputStream;
@@ -219,9 +249,10 @@ public class FilterActivity extends MainActivity {
 					intent.removeExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath");
 				}
 
-				// intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 				cleanup();
 				startActivity(intent);
+
 			}
 		});
 	}

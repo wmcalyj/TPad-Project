@@ -39,5 +39,6 @@
     <string name="edit_feel_image">haptic image view on edit page</string>
     <string name="landing_exit">EXIT</string>
     <string name="page_feel_image">Page Feel Image View</string>
+    <string name="edit_tool_save_corner">Edit Page Right Corner Save Button</string>
 
 </resources>

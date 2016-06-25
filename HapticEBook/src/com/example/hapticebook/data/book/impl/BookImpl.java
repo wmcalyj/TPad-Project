@@ -19,6 +19,7 @@ import android.util.Log;
 public class BookImpl extends MainActivity implements Serializable, Book {
 
 	private static final long serialVersionUID = 7398311213542276810L;
+	private static final String TAG = "BookImpl";
 
 	private Page header;
 	private Page tail;
@@ -105,11 +106,11 @@ public class BookImpl extends MainActivity implements Serializable, Book {
 			out.close();
 		} catch (FileNotFoundException e) {
 			this.includeDeleted = originalMode;
-			e.printStackTrace();
+			Log.e(TAG, e.getMessage());
 			return false;
 		} catch (IOException e) {
 			this.includeDeleted = originalMode;
-			e.printStackTrace();
+			Log.e(TAG, e.getMessage());
 			return false;
 		} finally {
 			this.includeDeleted = originalMode;

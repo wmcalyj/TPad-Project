@@ -37,26 +37,37 @@ public class EditPageActivity extends MainActivity {
 	Bitmap filterBmp;
 	Bitmap mImage;
 
+	boolean isNewlyTakenImage = false;
+	boolean callFromFilterForNewlyTakenImage = false;
+
 	private Context context;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.edit);
-		if (Configuration.HAPTICDISABLED) {
-			if (edit == null) {
-				edit = (ImageView) findViewById(R.id.edit_tool_feel);
-			}
-			edit.setVisibility(View.GONE);
+		setIsNewlyTakenImage();
+		setCalledFromFilterForNewImage();
+		setImageAndCurrentPage();
+		if ((isNewlyTakenImage && isNewlyTakenImage(currentPage)) || callFromFilterForNewlyTakenImage) {
+			// set feel button to invisible
+			edit = (ImageView) findViewById(R.id.edit_tool_feel);
+			edit.setVisibility(View.INVISIBLE);
 		} else {
-			if (edit == null) {
-				edit = (ImageView) findViewById(R.id.edit_tool_feel);
+			if (Configuration.HAPTICDISABLED) {
+				if (edit == null) {
+					edit = (ImageView) findViewById(R.id.edit_tool_feel);
+				}
+				edit.setVisibility(View.GONE);
+			} else {
+				if (edit == null) {
+					edit = (ImageView) findViewById(R.id.edit_tool_feel);
+				}
+				edit.setVisibility(View.VISIBLE);
 			}
-			edit.setVisibility(View.VISIBLE);
 		}
 		context = this;
 
-		setImage();
 		addAllButtonListerners();
 		if (!Configuration.HAPTICDISABLED) {
 			tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
@@ -67,6 +78,9 @@ public class EditPageActivity extends MainActivity {
 			((FrameLayout) tpadView.getParent()).removeView(tpadView);
 		}
 		finishLoading();
+		if (isNewlyTakenImage || callFromFilterForNewlyTakenImage) {
+			Toast.makeText(this, "Record a message that describes this photo", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	private void applyFilter() {
@@ -109,8 +123,12 @@ public class EditPageActivity extends MainActivity {
 		checkImage();
 	}
 
-	private void setImage() {
-		currentPage = getMBook().getCurrentPage();
+	private void setImageAndCurrentPage() {
+		if (callFromFilterForNewlyTakenImage) {
+			currentPage = getMBook().goToLastPage();
+		} else {
+			currentPage = getMBook().getCurrentPage();
+		}
 		if (currentPage != null) {
 			mImage = currentPage.getImageBitmap();
 			if (image == null) {
@@ -230,8 +248,13 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	protected void addSaveButtonListener() {
-
-		save = (ImageView) findViewById(R.id.edit_tool_save);
+		if (!isNewlyTakenImage) {
+			save = (ImageView) findViewById(R.id.edit_tool_save);
+		} else {
+			((ImageView) findViewById(R.id.edit_tool_save)).setVisibility(View.INVISIBLE);
+			save = (ImageView) findViewById(R.id.edit_tool_save_corner);
+			save.setVisibility(View.VISIBLE);
+		}
 		save.setClickable(true);
 		save.setOnClickListener(new OnClickListener() {
 			@Override
@@ -241,20 +264,21 @@ public class EditPageActivity extends MainActivity {
 				MainActivity.disableAfterClick(v);
 				Intent intent = new Intent(EditPageActivity.this, PageActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-				if (isNewlyTakenImage(currentPage)) {
-					getMBook().addNewPage(currentPage);
+				if (isNewlyTakenImage(currentPage) || callFromFilterForNewlyTakenImage) {
+					if (!callFromFilterForNewlyTakenImage) {
+						getMBook().addNewPage(currentPage);
+						LogService.WriteToLog(Action.SAVE_EDIT,
+								"Save newly taken image " + currentPage.getImageFilePath());
+					}
 					intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
-					LogService.WriteToLog(Action.SAVE_EDIT, "Save newly taken image " + currentPage.getImageFilePath());
 				} else {
 					intent.removeExtra(PAGE_ACTIVITY_KEY);
 					LogService.WriteToLog(Action.SAVE_EDIT, "Save edited file " + currentPage.getImageFilePath());
 				}
 				currentPage.saveAudioFile();
-				if (!getMBook().saveBook()) {
-					Log.e(TAG, "Failed to save book due to");
-				}
-				startActivity(intent);
+				getMBook().saveBook();
 				cleanup();
+				startActivity(intent);
 			}
 		});
 	}
@@ -283,9 +307,27 @@ public class EditPageActivity extends MainActivity {
 		if (intent != null) {
 			setIntent(intent);
 		}
+		setIsNewlyTakenImage();
+		setCalledFromFilterForNewImage();
 		checkImage();
 		if (!Configuration.HAPTICDISABLED) {
 			applyFilter();
+		}
+	}
+
+	private void setIsNewlyTakenImage() {
+		if (getIntent().getIntExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_DEFAULT) == PAGE_ACTIVITY_NEW_PHOTO) {
+			isNewlyTakenImage = true;
+		} else {
+			isNewlyTakenImage = false;
+		}
+	}
+
+	private void setCalledFromFilterForNewImage() {
+		if (getIntent().getBooleanExtra(FILTER_ACTIVITY_NEW_IMAGE_SAVED, false)) {
+			this.callFromFilterForNewlyTakenImage = true;
+		} else {
+			this.callFromFilterForNewlyTakenImage = false;
 		}
 	}
 

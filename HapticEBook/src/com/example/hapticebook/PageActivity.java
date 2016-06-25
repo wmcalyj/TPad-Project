@@ -12,6 +12,7 @@ import com.example.hapticebook.config.Configuration;
 import com.example.hapticebook.data.book.Book;
 import com.example.hapticebook.data.book.Page;
 import com.example.hapticebook.edit.EditPageActivity;
+import com.example.hapticebook.edit.FilterActivity;
 import com.example.hapticebook.filterservice.impl.FilterService;
 import com.example.hapticebook.log.Action;
 import com.example.hapticebook.log.LogService;
@@ -113,7 +114,7 @@ public class PageActivity extends MainActivity {
 				currentPage = book.goToLastPage();
 				Log.d("", "Page Activity, go to last page");
 			} else {
-				if (b.getBoolean(Configuration.IntentExtraValue.LandingEntry)) {
+				if (b != null && b.getBoolean(Configuration.IntentExtraValue.LandingEntry)) {
 					currentPage = book.goToFirstPage();
 					Log.d("", "Page Activity, go to first page");
 				} else {
@@ -572,20 +573,16 @@ public class PageActivity extends MainActivity {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				// If this is a new page, we don't save them now, save them
-				// later according to the new requirement
-				// saveAction();
-				// Move to last page
-				// currentPage = book.goToLastPage();
-				// ImageView iv = (ImageView) findViewById(R.id.page_image);
-				// iv.setImageBitmap(imageTaken);
-				// refresh();
-				// getIntent().putExtra(PAGE_ACTIVITY_KEY,
-				// PAGE_ACTIVITY_NEW_PHOTO);
+				// New page, go to filter page
+				Intent intent;
+				if (Configuration.HAPTICDISABLED) {
+					intent = new Intent(PageActivity.this, EditPageActivity.class);
+				} else {
+					intent = new Intent(PageActivity.this, FilterActivity.class);
+				}
 
-				// New page, go to edit page
-				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
 				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
 				cleanup();
 				finish();
 				startActivity(intent);

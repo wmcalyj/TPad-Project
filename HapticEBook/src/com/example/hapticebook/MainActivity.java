@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
 
 	public static final String FILE_NAME = "book.srl";
 	public static final String PAGE_ACTIVITY_KEY = "PAGE_ACTIVITY_KEY";
+	public static final String FILTER_ACTIVITY_NEW_IMAGE_SAVED = "FILTER_ACTIVITY_NEW_IMAGE_SAVED";
 	public static final int PAGE_ACTIVITY_NEW_PHOTO = 1;
 	public static final int CANCEL_SAVING_NEW_PHOTO_FROM_EDIT = 2;
 	public static final int PAGE_ACTIVITY_DEFAULT = -1;

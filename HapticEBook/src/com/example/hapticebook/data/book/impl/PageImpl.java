@@ -359,10 +359,13 @@ public class PageImpl implements Serializable, Page {
 		String fileName = this.getImageFilePath();
 		File newlyTakenImage = new File(fileName);
 		if (newlyTakenImage != null) {
-			newlyTakenImage.deleteOnExit();
+			newlyTakenImage.delete();
+			newlyTakenImage = null;
 		}
+
 		if (mRecordFile != null) {
-			mRecordFile.deleteOnExit();
+			mRecordFile.delete();
+			mRecordFile = null;
 		}
 		if (this.prevAvailablePage != null) {
 			this.prevAvailablePage.setNextAvailablePage(this.nextAvailablePage);
