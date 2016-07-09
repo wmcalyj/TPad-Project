@@ -51,9 +51,7 @@ public class PageActivity extends MainActivity {
 	private static final String root = Configuration.ROOT_PATH + "/hapticEBook/";
 	private static final File dir = new File(root);
 
-	private ImageView image;
-	private ImageView leftFooter;
-	private ImageView rightFooter;
+	private ImageView image, leftFooter, rightFooter, edit;
 	private Book book = getMBook();
 	private Page currentPage;
 	private boolean audioOn = false;
@@ -78,6 +76,7 @@ public class PageActivity extends MainActivity {
 	private long captureTime;
 	OrientationEventListener mOrientationListener;
 	int rotation = 0, count = 0;
+	private final boolean noEdit = Configuration.HAPTICDISABLED && !Configuration.RECORDINGENABLED;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +96,10 @@ public class PageActivity extends MainActivity {
 			dir.mkdirs();
 		}
 		image = (ImageView) findViewById(R.id.page_image);
+		if (noEdit) {
+			edit = (ImageView) findViewById(R.id.page_edit_button);
+			edit.setVisibility(View.GONE);
+		}
 		if (!Configuration.HAPTICDISABLED) {
 			tpadView = (FrictionMapView) findViewById(R.id.page_feel_image);
 			tpadView.setTpad(mTpad);
@@ -230,7 +233,9 @@ public class PageActivity extends MainActivity {
 	protected void addHeaderButtonListeners() {
 		addNewPageListener();
 		addDeletePageListener();
-		addEditPageListener();
+		if (!noEdit) {
+			addEditPageListener();
+		}
 	}
 
 	private void addPrevListener() {
@@ -369,7 +374,7 @@ public class PageActivity extends MainActivity {
 	}
 
 	public void addEditPageListener() {
-		ImageView edit = (ImageView) findViewById(R.id.page_edit_button);
+		edit = (ImageView) findViewById(R.id.page_edit_button);
 		edit.setClickable(true);
 		edit.setOnClickListener(new OnClickListener() {
 
@@ -576,7 +581,21 @@ public class PageActivity extends MainActivity {
 				// New page, go to filter page
 				Intent intent;
 				if (Configuration.HAPTICDISABLED) {
-					intent = new Intent(PageActivity.this, EditPageActivity.class);
+					if (Configuration.RECORDINGENABLED) {
+						intent = new Intent(PageActivity.this, EditPageActivity.class);
+					} else {
+						// No haptic and no recording, stay in the same activity
+						// Save new page
+						saveAction();
+						// Move to last page
+						currentPage = book.goToLastPage();
+						// ImageView iv = (ImageView)
+						// findViewById(R.id.page_image);
+						// iv.setImageBitmap(imageTaken);
+						refresh();
+						getIntent().putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
+						return;
+					}
 				} else {
 					intent = new Intent(PageActivity.this, FilterActivity.class);
 				}

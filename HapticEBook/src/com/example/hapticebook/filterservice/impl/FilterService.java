@@ -162,6 +162,10 @@ public class FilterService {
 		return inSampleSize;
 	}
 
+	/**
+	 * 
+	 * @return a list of existing filters
+	 */
 	public static List<HapticFilterEnum> getAllFilterTypes() {
 		if (filters == null) {
 			filters = new ArrayList<HapticFilterEnum>(8);

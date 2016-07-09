@@ -77,6 +77,25 @@ public class EditPageActivity extends MainActivity {
 			tpadView = (FrictionMapView) findViewById(R.id.edit_feel_image);
 			((FrameLayout) tpadView.getParent()).removeView(tpadView);
 		}
+		if (Configuration.RECORDINGENABLED) {
+			recording = (ImageView) findViewById(R.id.edit_tool_record);
+			if (recording != null) {
+				recording.setVisibility(View.VISIBLE);
+			}
+			play = (ImageView) findViewById(R.id.edit_tool_play);
+			if (play != null) {
+				play.setVisibility(View.VISIBLE);
+			}
+		} else {
+			recording = (ImageView) findViewById(R.id.edit_tool_record);
+			if (recording != null) {
+				recording.setVisibility(View.GONE);
+			}
+			play = (ImageView) findViewById(R.id.edit_tool_play);
+			if (play != null) {
+				play.setVisibility(View.GONE);
+			}
+		}
 		finishLoading();
 		if (isNewlyTakenImage || callFromFilterForNewlyTakenImage) {
 			Toast.makeText(this, "Record a message that describes this photo", Toast.LENGTH_LONG).show();
@@ -108,8 +127,10 @@ public class EditPageActivity extends MainActivity {
 	}
 
 	private void addAllButtonListerners() {
-		addRecordButtonListener();
-		addPlayButtonListener();
+		if (Configuration.RECORDINGENABLED) {
+			addRecordButtonListener();
+			addPlayButtonListener();
+		}
 		addSaveButtonListener();
 		addCancelButtonListener();
 		if (!Configuration.HAPTICDISABLED) {

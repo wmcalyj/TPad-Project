@@ -157,7 +157,11 @@ public class FilterActivity extends MainActivity {
 					intent.putExtra(PAGE_ACTIVITY_KEY, CANCEL_SAVING_NEW_PHOTO_FROM_EDIT);
 					LogService.WriteToLog(Action.CANCEL_EDIT, "Cancel saving newly taken image, go back to pages");
 				} else {
-					intent = new Intent(FilterActivity.this, EditPageActivity.class);
+					if (Configuration.RECORDINGENABLED) {
+						intent = new Intent(FilterActivity.this, EditPageActivity.class);
+					} else {
+						intent = new Intent(FilterActivity.this, PageActivity.class);
+					}
 					if (filter != null) {
 						intent.putExtra("com.example.hapticebook.edit.FilterActivity.ChosenFilterFilePath",
 								filterFile.getAbsolutePath());
@@ -219,10 +223,17 @@ public class FilterActivity extends MainActivity {
 				HapticFilterEnum currentFilter = filters.get(current);
 				currentPage.setHapticFilter(currentFilter);
 				currentPage.saveHapticFilter(filterFilePath);
-				Intent intent = new Intent(FilterActivity.this, EditPageActivity.class);
+				Intent intent;
+				if (Configuration.RECORDINGENABLED) {
+					intent = new Intent(FilterActivity.this, EditPageActivity.class);
+				} else {
+					intent = new Intent(FilterActivity.this, PageActivity.class);
+				}
 				if (isNewlyTakenImage(currentPage)) {
 					getMBook().addNewPage(currentPage);
-					// Newly Taken Image, go to RecordingActivity Page
+					// Newly Taken Image, go back to browse page if recording
+					// disabled
+					// If recording is enabled, go to edit page
 					intent.putExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_NEW_PHOTO);
 					intent.putExtra(FILTER_ACTIVITY_NEW_IMAGE_SAVED, true);
 					LogService.WriteToLog(Action.SAVE_EDIT, "Save newly taken image " + currentPage.getImageFilePath());

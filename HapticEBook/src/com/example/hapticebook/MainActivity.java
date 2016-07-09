@@ -1,10 +1,12 @@
 package com.example.hapticebook;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -288,59 +290,83 @@ public class MainActivity extends Activity {
 		String root = Configuration.ROOT_PATH;
 		File dir = new File(root);
 		if (!dir.exists()) {
-			// Use the default value in Configuration
-			return;
+			// Create default file and use default settings
+			dir.mkdirs();
 		}
 		File appVersion = new File(dir, filename);
 		if (!appVersion.exists()) {
-			// Use the default value in Configuration
-			return;
-		} else {
-			FileInputStream inputStream;
-			BufferedReader bufferedReader;
-			InputStreamReader inputStreamReader;
-
+			appVersion = new File(dir, filename);
 			try {
-				inputStream = new FileInputStream(appVersion);
-				if (inputStream != null) {
-					inputStreamReader = new InputStreamReader(inputStream);
-					bufferedReader = new BufferedReader(inputStreamReader);
-					String receiveString = bufferedReader.readLine();
-					if (receiveString == null || receiveString.isEmpty()) {
-						// Use the default value in Configuration
+				appVersion.createNewFile();
+				writeDefaultConfigurationToAppVersion(appVersion);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return;
+		}
+		FileInputStream inputStream;
+		BufferedReader bufferedReader;
+		InputStreamReader inputStreamReader;
+		try {
+			inputStream = new FileInputStream(appVersion);
+			if (inputStream != null) {
+				inputStreamReader = new InputStreamReader(inputStream);
+				bufferedReader = new BufferedReader(inputStreamReader);
+				String receiveString = bufferedReader.readLine();
+				while (receiveString != null && !receiveString.isEmpty()) {
+					try {
+						int equalIndex = receiveString.indexOf("=");
+						int valueIndex = equalIndex + 1;
+						if (receiveString.startsWith("HAPTICDISABLED")) {
+							Configuration.HAPTICDISABLED = Boolean.parseBoolean(receiveString.substring(valueIndex).trim());
+						} else if (receiveString.startsWith("RECORDINGENABLED")) {
+							Configuration.RECORDINGENABLED = Boolean.parseBoolean(receiveString.substring(valueIndex).trim());
+						} else {
+							// If we need to configure something else in the
+							// future
+						}
+
 						inputStream.close();
 						inputStreamReader.close();
 						bufferedReader.close();
 						return;
-					} else {
-						try {
-							int i = Integer.parseInt(receiveString);
-							if (i == 1) {
-								inputStream.close();
-								inputStreamReader.close();
-								bufferedReader.close();
-								return;
-							} else {
-								// If there is a number set in appversion.txt,
-								// Switch to HapticDisabled version;
-								Configuration.HAPTICDISABLED = true;
-							}
-						} catch (NumberFormatException e) {
-							inputStream.close();
-							inputStreamReader.close();
-							bufferedReader.close();
-							return;
-						}
+
+					} catch (NumberFormatException e) {
+						inputStream.close();
+						inputStreamReader.close();
+						bufferedReader.close();
+						return;
 					}
+
 				}
-			} catch (StreamCorruptedException e) {
-				e.printStackTrace();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
+		} catch (StreamCorruptedException e) {
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+
+	}
+
+	private void writeDefaultConfigurationToAppVersion(File appVersion) {
+		// TODO Auto-generated method stub
+		FileWriter fw;
+		try {
+			fw = new FileWriter(appVersion.getAbsoluteFile());
+			BufferedWriter bw = new BufferedWriter(fw);
+			StringBuilder sb = new StringBuilder();
+			sb.append("HAPTICDISABLED=").append(Configuration.HAPTICDISABLED).append("\n");
+			sb.append("RECORDINGENABLED=").append(Configuration.RECORDINGENABLED);
+			bw.write(sb.toString());
+			bw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override

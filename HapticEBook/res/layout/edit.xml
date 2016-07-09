@@ -66,7 +66,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1.0"
             android:contentDescription="@string/edit_tool_record"
-            android:src="@drawable/record" >
+            android:src="@drawable/record"
+            android:visibility="gone" >
         </ImageView>
 
         <ImageView
@@ -75,7 +76,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1.0"
             android:contentDescription="@string/edit_tool_play"
-            android:src="@drawable/play" >
+            android:src="@drawable/play"
+            android:visibility="gone" >
         </ImageView>
 
         <ImageView
