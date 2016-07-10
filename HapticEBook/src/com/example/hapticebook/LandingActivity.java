@@ -41,6 +41,9 @@ public class LandingActivity extends MainActivity {
 		exit.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				if (mTpad != null && mTpad.getTpadStatus()) {
+					mTpad.disconnectTPad();
+				}
 				finishAffinity();
 			}
 		});
@@ -87,7 +90,6 @@ public class LandingActivity extends MainActivity {
 				loading.setVisibility(View.VISIBLE);
 				Intent intent;
 				intent = new Intent(LandingActivity.this, PageActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);	
 				intent.putExtra(Configuration.IntentExtraValue.LandingEntry, true);
 				startActivity(intent);
 			}
@@ -100,6 +102,13 @@ public class LandingActivity extends MainActivity {
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onDestroy() {
+		finish();
+		System.gc();
+		super.onDestroy();
 	}
 
 	@Override

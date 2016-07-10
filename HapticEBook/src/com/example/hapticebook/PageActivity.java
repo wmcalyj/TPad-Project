@@ -383,7 +383,12 @@ public class PageActivity extends MainActivity {
 				disablePlaying();
 				Page currentPage = book.getCurrentPage();
 				LogService.WriteToLog(Action.EDIT, "Edit page - " + currentPage.getImageFilePath());
-				Intent intent = new Intent(PageActivity.this, EditPageActivity.class);
+				Intent intent;
+				if (Configuration.RECORDINGENABLED) {
+					intent = new Intent(PageActivity.this, EditPageActivity.class);
+				} else {
+					intent = new Intent(PageActivity.this, FilterActivity.class);
+				}
 				cleanup();
 				startActivity(intent);
 			}
@@ -513,13 +518,15 @@ public class PageActivity extends MainActivity {
 		Log.d("", "New Intent");
 		if (intent != null)
 			setIntent(intent);
-		setPlayAudio();
+		if (Configuration.RECORDINGENABLED) {
+			setPlayAudio();
+		}
 		refresh();
 	}
 
 	@Override
 	protected void onResume() {
-		super.onResume();
+
 		int newPageActivityFlag = getIntent().getIntExtra(PAGE_ACTIVITY_KEY, PAGE_ACTIVITY_DEFAULT);
 		switch (newPageActivityFlag) {
 		case PAGE_ACTIVITY_NEW_PHOTO:
@@ -534,8 +541,14 @@ public class PageActivity extends MainActivity {
 			break;
 		case PAGE_ACTIVITY_DEFAULT:
 		default:
+			// if (this.isBookEmpty()) {
+			// showInstructionForEmptyBook();
+			// playInstructionForEmptyBookAudio();
+			// startCameraActivity();
+			// }
 			break;
 		}
+		super.onResume();
 	}
 
 	@Override

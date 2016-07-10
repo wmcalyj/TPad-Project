@@ -58,7 +58,6 @@ public class PageImpl implements Serializable, Page {
 	// shared across all instance. Also, bitmap CANNOT be written into a file
 	// Remember to clean it before saving.
 	private static Bitmap imageBmp;
-	// private Bitmap imageBmp;
 
 	@SuppressWarnings("unused")
 	private PageImpl() {

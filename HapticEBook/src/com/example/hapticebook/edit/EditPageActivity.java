@@ -374,7 +374,7 @@ public class EditPageActivity extends MainActivity {
 		if (playOn && player != null) {
 			currentPage.stopPlayingAudio(player);
 		}
-
+		cleanup();
 		super.onDestroy();
 	}
 

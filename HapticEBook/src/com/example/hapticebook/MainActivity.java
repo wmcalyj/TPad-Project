@@ -241,16 +241,22 @@ public class MainActivity extends Activity {
 
 	@Override
 	public void onDestroy() {
+		if (mTpad != null && mTpad.getTpadStatus()) {
+			mTpad.disconnectTPad();
+		}
 		if (getClass().isAssignableFrom(MainActivity.class)) {
 			Log.i("QUIT", "Quit app");
-			if (mTpad != null) {
-				mTpad.disconnectTPad();
-			}
+
 			LogService.WriteToLog(Action.CLOSE, "Quit App");
 		} else {
 			Log.i("QUIT", "Calling from " + getClass().getName());
 		}
 		super.onDestroy();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
 	}
 
 	@Override
@@ -319,9 +325,11 @@ public class MainActivity extends Activity {
 						int equalIndex = receiveString.indexOf("=");
 						int valueIndex = equalIndex + 1;
 						if (receiveString.startsWith("HAPTICDISABLED")) {
-							Configuration.HAPTICDISABLED = Boolean.parseBoolean(receiveString.substring(valueIndex).trim());
+							Configuration.HAPTICDISABLED = Boolean
+									.parseBoolean(receiveString.substring(valueIndex).trim());
 						} else if (receiveString.startsWith("RECORDINGENABLED")) {
-							Configuration.RECORDINGENABLED = Boolean.parseBoolean(receiveString.substring(valueIndex).trim());
+							Configuration.RECORDINGENABLED = Boolean
+									.parseBoolean(receiveString.substring(valueIndex).trim());
 						} else {
 							// If we need to configure something else in the
 							// future

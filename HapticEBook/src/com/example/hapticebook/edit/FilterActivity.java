@@ -34,13 +34,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import nxr.tpad.lib.TPad;
 import nxr.tpad.lib.TPadImpl;
 import nxr.tpad.lib.views.FrictionMapView;
 
 public class FilterActivity extends MainActivity {
 
-	TPad mTpad;
 	final static String TAG = "Filter";
 
 	private Bitmap mImage;
@@ -115,7 +113,6 @@ public class FilterActivity extends MainActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		current = 0;
 		setContentView(R.layout.filter);
 		textView = (TextView) findViewById(R.id.filter_id);
